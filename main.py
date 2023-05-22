@@ -800,6 +800,47 @@ def BlockStatement(j):
     out = dict()
 
 
+def Block(j):
+    children = []
+    out = dict()
+    temp = TOKENS[j].to_dict()
+    if temp["token_type"] == Token_type.Begin:
+        out_begin = Match(Token_type.Begin, j)
+        children.append(out_begin['node'])
+        out_stat = Statements(out_begin['index'])
+        children.append(out_stat['node'])
+        out_end = Match(Token_type.End, out_stat['index'])
+        children.append(out_end['node'])
+        out_semi = Match(Token_type.Semicolon, out_end['index'])
+        children.append(out_semi['node'])
+        node = Tree('Block', children)
+        out['node'] = node
+        out['index'] = out_semi['index']
+        return out
+    
+    # elif temp["token_type"] == Token_type.
+    else:
+        out = {"node": '', 'index': j}
+        return out
+
+def Statements(j):
+    pass
+
+def Statement(j):
+    pass
+
+def Statements_d(j):
+    children = []
+    out = dict()
+    temp = TOKENS[j].to_dict()
+    
+    #Replace Statement with correct code
+    if temp["token_type"] == "Statement":
+        pass
+    else:
+        out = {"node": '', 'index': j}
+        return out
+
 # Start symbol
 def Parse():
     j = 0
@@ -821,6 +862,20 @@ def Parse():
     #Block
     # Block_dict = Block(Dec_dic['index'])
     # Children.append(Block_dict['node'])
+    # Dec_dic = DecBlock(Library_dict['index'])
+    # Children.append(Dec_dic['node'])
+
+    #Type
+    Type_dic = TypeBlock(Library_dict['index'])
+    Children.append(Type_dic['node'])
+
+    # Variables
+    Variables_dict = variables(Type_dic['index'])
+    Children.append(Variables_dict['node'])
+
+    #Block
+    Block_dict = Block(Variables_dict["index"])
+    Children.append(Block_dict['node'])
 
     Node = Tree('Program', Children)
     return Node
