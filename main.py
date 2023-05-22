@@ -187,18 +187,19 @@ Data_Types = {
 TOKENS = []
 errors = []
 newDataTypes = []
-
+SemiColonsErrorsFollow = []
 # TODO write in the first 2 if conditions sub.lowercase()
 # Lexical Analysis
 # Defining the string checking functions
 def checkSub(sub):
     # Reserved Words
-    if sub in ReservedWords:
-        TOKENS.append(token(sub, ReservedWords[sub]))
+    tmp = sub.lower()
+    if tmp in ReservedWords:
+        TOKENS.append(token(sub, ReservedWords[tmp]))
 
     # Data types
-    elif sub in Data_Types:
-        TOKENS.append(token(sub, Data_Types[sub]))
+    elif tmp in Data_Types:
+        TOKENS.append(token(sub, Data_Types[tmp]))
 
     # Constants - Numbers
     elif re.match("\d+\.?\d*", sub):
@@ -844,8 +845,8 @@ def Statements(j):
     out_stat = Statement(j)
     children.append(out_stat['node'])
     out_stats_d = Statements_d(out_stat['index'])
-    children.append(out_stats_d['node'])
-
+    if (not (out_stats_d['node'] == '')):
+        children.append(out_stats_d['node'])
     node = Tree('Statements', children)
     out['node'] = node
     out['index'] = out_stats_d['index']
@@ -862,7 +863,8 @@ def Statements_d(j):
         out_stat = Statement(j)
         children.append(out_stat['node'])
         out_stats_d = Statements_d(out_stat['index'])
-        children.append(out_stats_d['node'])
+        if (not (out_stats_d['node'] == '')):
+            children.append(out_stats_d['node'])
         node = Tree('Statements_d', children)
         out['node'] = node
         out['index'] = out_stats_d['index']
@@ -1067,7 +1069,8 @@ def vs(j):
     out_val = Value(j)
     Children.append(out_val['node'])
     out_vss = vss(out_val['index'])
-    Children.append(out_vss['node'])
+    if (not (out_vss['node'] == '')):
+        Children.append(out_vss['node'])
 
     # Create a tree node
     node = Tree('vs', Children)
@@ -1179,6 +1182,10 @@ def Value(j):
             out['node'] = node
             out['index'] = out_value['index']
             return out
+    else:
+        out['node'] = ["error"]
+        out['index'] = j
+        return out
 
 
 def Experssion(j, type):
@@ -1290,7 +1297,7 @@ def Constvalue(j):
     if temp['token_type']== Token_type.CONSTANT:
         Children = []
         out = dict()
-        out_int = Match(Token_type.CONSTANT,j)
+        out_int = Match(Token_type.CONSTANT, j)
         Children.append(out_int['node'])
 
         node = Tree('Constvalue', Children)
@@ -1338,6 +1345,10 @@ def Constvalue(j):
         out['index'] = out_rightPar['index']
         return out
 def Parse():
+    for i in TOKENS:
+        if i == ';':
+            SemiColonsErrorsFollow.append(i)
+    print((SemiColonsErrorsFollow))
     j = 0
     Children = []
 
@@ -1354,14 +1365,13 @@ def Parse():
     Dec_dic = DecBlock(Library_dict['index'])
     Children.append(Dec_dic['node'])
 
-    #Block
-    # Block_dict = Block(Dec_dic['index'])
-    # Children.append(Block_dict['node'])
-    # Dec_dic = DecBlock(Library_dict['index'])
-    # Children.append(Dec_dic['node'])
+    #Begin
+    Beg_dic = Match(Token_type.Begin,Dec_dic['index'])
+    Children.append(Beg_dic['node'])
+
 
     #Block
-    Block_dict = Block(Dec_dic["index"])
+    Block_dict = Block(Beg_dic["index"])
     Children.append(Block_dict['node'])
 
     #Enddot
