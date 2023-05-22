@@ -149,15 +149,18 @@ ReservedWords = {
 }
 
 Arithmetic_Operators = {
-    "+": Token_type.PlusOp,
-    "-": Token_type.MinusOp,
-    "*": Token_type.MultiplyOp,
-    "/": Token_type.DivideOp,
-    ":=": Token_type.AssignmentOp,
-    ";": Token_type.Semicolon,
-    ",": Token_type.Comma,
-    ":": Token_type.Colon
-}
+             "+": Token_type.PlusOp,
+             "-": Token_type.MinusOp,
+             "*": Token_type.MultiplyOp,
+             "/": Token_type.DivideOp,
+             ":=": Token_type.AssignmentOp,
+             }
+
+Symbols = {
+             ";": Token_type.Semicolon,
+             ",": Token_type.Comma,
+             ":": Token_type.Colon
+           }
 
 Relational_Operators = {
     "<": Token_type.LessThanOp,
@@ -220,6 +223,9 @@ def checkSym(temp):
     # Arithmetic Operators
     if temp in Arithmetic_Operators:
         TOKENS.append(token(temp, Arithmetic_Operators[temp]))
+    # Symbols
+    elif temp in Symbols:
+        TOKENS.append(token(temp, Symbols[temp]))
     # Relational Operators
     elif temp in Relational_Operators:
         TOKENS.append(token(temp, Relational_Operators[temp]))
@@ -792,15 +798,9 @@ def DecBlock(j):
         return out
 
 def Block(j):
-    Children = []
-    out = dict()
-
-def BlockStatement(j):
-    Children = []
-    out = dict()
-
-
-def Block(j):
+    Token_types_aux =\
+        [Token_type.If, Token_type.Read, Token_type.FOR, Token_type.REPEAT,
+         Token_type.IDENTIFIER, Token_type.ReadLine, Token_type.Write, Token_type.WriteLine]
     children = []
     out = dict()
     temp = TOKENS[j].to_dict()
@@ -817,8 +817,13 @@ def Block(j):
         out['node'] = node
         out['index'] = out_semi['index']
         return out
-    
-    # elif temp["token_type"] == Token_type.
+    elif temp["token_type"] in Token_types_aux:
+        out_stats = Statements(j)
+        children.append(out_stats['node'])
+        node = Tree('Statement', children)
+        out['node'] = node
+        out['index'] = out_stats['index']
+        return out
     else:
         out = {"node": '', 'index': j}
         return out
@@ -865,16 +870,8 @@ def Parse():
     # Dec_dic = DecBlock(Library_dict['index'])
     # Children.append(Dec_dic['node'])
 
-    #Type
-    Type_dic = TypeBlock(Library_dict['index'])
-    Children.append(Type_dic['node'])
-
-    # Variables
-    Variables_dict = variables(Type_dic['index'])
-    Children.append(Variables_dict['node'])
-
     #Block
-    Block_dict = Block(Variables_dict["index"])
+    Block_dict = Block(Dec_dic["index"])
     Children.append(Block_dict['node'])
 
     Node = Tree('Program', Children)
