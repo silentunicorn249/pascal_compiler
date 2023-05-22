@@ -1117,6 +1117,87 @@ def vss_d(j):
     else:
         out = {'node': '', 'index': j}
         return out
+
+
+def Value(j):
+    Children = []
+    out = dict()
+    temp1 = TOKENS[j].to_dict()
+    temp2 = TOKENS[j+1].to_dict()
+    if temp1['token_type'] == Token_type.IDENTIFIER:
+        ## TODO id + id through function Expression
+        out_value = Match(Token_type.IDENTIFIER, temp1['token_type'])
+        Children.append(out_value['node'])
+        # Create a tree node
+        node = Tree('Value', Children)
+        out['node'] = node
+        out['index'] = out_value['index']
+        return out
+    elif temp1['token_type'] == Token_type.CONSTANT:
+        if temp2['token_type'] == Token_type.PlusOp or temp2['token_type'] == Token_type.MinusOp or temp2['token_type'] == Token_type.MultiplyOp or temp2['token_type'] == Token_type.DivideOp :
+            out_value = Experssion(j, "constant")
+            Children.append(out_value['node'])
+            # Create a tree node
+            node = Tree('Value', Children)
+            out['node'] = node
+            out['index'] = out_value['index']
+            return out
+        else:
+            out_value = Match(Token_type.CONSTANT, temp1['token_type'])
+            Children.append(out_value['node'])
+            # Create a tree node
+            node = Tree('Value', Children)
+            out['node'] = node
+            out['index'] = out_value['index']
+            return out
+    elif temp1['token_type'] == Token_type.STRING:
+        if temp2['token_type'] == Token_type.PlusOp:
+            out_value = Experssion(j, "string")
+            Children.append(out_value['node'])
+            # Create a tree node
+            node = Tree('Value', Children)
+            out['node'] = node
+            out['index'] = out_value['index']
+            return out
+        else:
+            out_value = Match(Token_type.STRING, temp1['token_type'])
+            Children.append(out_value['node'])
+            # Create a tree node
+            node = Tree('Value', Children)
+            out['node'] = node
+            out['index'] = out_value['index']
+            return out
+
+
+def Experssion(j, type):
+    Children = []
+    out = dict()
+    if type == "constant":
+        out_const1 = Match(Token_type.CONSTANT, j)
+        Children.append(out_const1['node'])
+        out_operator = Match(Arithmetic_Operators, j)
+        Children.append(out_operator['node'])
+        out_const2 = Match(Token_type.CONSTANT, j)
+        Children.append(out_const2['node'])
+        # Create a tree node
+        node = Tree('Expression', Children)
+        out['node'] = node
+        out['index'] = out_const2['index']
+        return out
+    elif type == "string":
+        out_string1 = Match(Token_type.STRING, j)
+        Children.append(out_string1['node'])
+        out_operator = Match(Token_type.PlusOp, j)
+        Children.append(out_operator['node'])
+        out_string2 = Match(Token_type.STRING, j)
+        Children.append(out_string2['node'])
+        # Create a tree node
+        node = Tree('Expression', Children)
+        out['node'] = node
+        out['index'] = out_string2['index']
+        return out
+
+
 def Parse():
     j = 0
     Children = []
