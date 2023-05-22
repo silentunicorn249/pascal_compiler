@@ -1351,7 +1351,7 @@ def Constvalue(j):
         return out
 
 
-# #ifStatement
+# #ifStatement Still needs to be Tested
 # def ifStatement(j):
 #     Children = []
 #     out = dict()
@@ -1359,7 +1359,7 @@ def Constvalue(j):
 #     Children.append(out_if['node'])
 #     out_cond = Cond(out_if['index'])
 #     Children.append(out_cond['node'])
-#     out_then = Match(Token_type.THEN, j)
+#     out_then = Match(Token_type.THEN, out_cond['index'])
 #     Children.append(out_then['node'])
 #     out_Block = Block(out_then['index'])
 #     Children.append(out_Block['node'])
@@ -1375,7 +1375,7 @@ def Constvalue(j):
 #     Children = []
 #     out = dict()
 #     temp = TOKENS[j].to_dict()
-#     if temp["token_type"] == Token_type.Else:
+#     if temp["token_type"]==Token_type.Else:
 #         out_else = Match(Token_type.Else, j)
 #         Children.append(out_else['node'])
 #         out_block = Block(out_else['index'])
@@ -1389,6 +1389,26 @@ def Constvalue(j):
 #     else:
 #         out = {'node': '', 'index': j}
 #         return out
+# #RepeatStatement still needs to be tested
+# def RepeatStatement(j)
+#     Children = []
+#     out = dict()
+#     out_reapet = Match(Token_type.REPEAT,j)
+#     Children.append(out_reapet['node'])
+#     out_Block = Block(out_reapet['index'])
+#     Children.append(out_Block['node'])
+#     out_until = Until(out_Block['index'])
+#     Children.append(out_until['node'])
+#     out_Cond = Cond(out_until['index'])
+#     Children.append(out_Cond['node'])
+#     out_semicolon = Match(Token_type.Semicolon, j)
+#     Children.append(out_semicolon['node'])
+#
+#     #Tree
+#     node=Tree('RepeatStatement',Children)
+#     out['node']=node
+#     out['index']= out_semicolon['index']
+#     return out
 def Parse():
     for i in TOKENS:
         if i == ';':
