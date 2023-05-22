@@ -188,6 +188,7 @@ TOKENS = []
 errors = []
 newDataTypes = []
 SemiColonsErrorsFollow = []
+states = []
 # TODO write in the first 2 if conditions sub.lowercase()
 # Lexical Analysis
 # Defining the string checking functions
@@ -1062,6 +1063,10 @@ def forVar(j):
         out['node'] = node
         out['index'] = identifier['index']
         return out
+    else:
+        out['node'] = ["error"]
+        out['index'] = j
+        return out
 # Start symbol
 def vs(j):
     Children = []
@@ -1344,6 +1349,46 @@ def Constvalue(j):
         out['node'] = node
         out['index'] = out_rightPar['index']
         return out
+
+
+# #ifStatement
+# def ifStatement(j):
+#     Children = []
+#     out = dict()
+#     out_if = Match(Token_type.If, j)
+#     Children.append(out_if['node'])
+#     out_cond = Cond(out_if['index'])
+#     Children.append(out_cond['node'])
+#     out_then = Match(Token_type.THEN, j)
+#     Children.append(out_then['node'])
+#     out_Block = Block(out_then['index'])
+#     Children.append(out_Block['node'])
+#     out_ifstatement_d = ifStatement_d(out_Block['index'])
+#     Children.append(out_ifstatement_d['node'])
+#
+#     #Tree
+#     node = Tree('IfStatement', Children)
+#     out['node'] = node
+#     out['index'] = ifStatement['index']
+#     return out
+# def ifStatement_d(j):
+#     Children = []
+#     out = dict()
+#     temp = TOKENS[j].to_dict()
+#     if temp["token_type"] == Token_type.Else:
+#         out_else = Match(Token_type.Else, j)
+#         Children.append(out_else['node'])
+#         out_block = Block(out_else['index'])
+#         Children.append(out_block['node'])
+#
+#         # Tree
+#         node = Tree('IfStatement_d', Children)
+#         out['node'] = node
+#         out['index'] = out_block['index']
+#         return out
+#     else:
+#         out = {'node': '', 'index': j}
+#         return out
 def Parse():
     for i in TOKENS:
         if i == ';':
