@@ -677,6 +677,14 @@ def TStatement(j):
                 if not (i[0] == ','):
                     newDataTypes.extend(i)
             #print(newDataTypes)
+    elif temp['token_type'] == Token_type.LEFT_PAR:
+        newDataTypes.append(out_tn['node'][0][0])
+        out_lp = Match(Token_type.LEFT_PAR, out_equal['index'])
+        Children.append(out_lp['node'])
+        out_tn = TNames(out_lp['index'])
+        Children.append(out_tn['node'])
+        out_dt = Match(Token_type.RIGHT_PAR, out_tn['index'])
+        #print(newDataTypes)
     else:
         out_dt['node'] = ["error"]
         out_dt['index'] = out_equal["index"] + 1
@@ -752,6 +760,45 @@ def ExtraTNames_d(j):
         out = {'node': '', 'index': j}
         return out
 
+def DecBlock(j):
+    Children = []
+    out = dict()
+    temp = TOKENS[j].to_dict()
+    if temp['token_type'] == Token_type.VAR:
+        out_dic = variables(j)
+        Children.append(out_dic['node'])
+        out_dic = DecBlock(out_dic['index'])
+        if (not (out_dic['node'] == '')):
+            Children.append(out_dic['node'])
+        node = Tree('Declaration Block:', Children)
+        out['node'] = node
+        out['index'] = out_dic['index']
+        return out
+    # elif temp['token_type'] == Token_type.CONST:
+    #     ###########################out_const = constants
+    #
+    elif temp['token_type'] == Token_type.TYPE:
+        out_dic = TypeBlock(j)
+        Children.append(out_dic['node'])
+        out_dic = DecBlock(out_dic['index'])
+        if (not (out_dic['node'] == '')):
+            Children.append(out_dic['node'])
+        node = Tree('Declaration Block:', Children)
+        out['node'] = node
+        out['index'] = out_dic['index']
+        return out
+    else:
+        out = {'node': '', 'index': j}
+        return out
+
+def Block(j):
+    Children = []
+    out = dict()
+
+def BlockStatement(j):
+    Children = []
+    out = dict()
+
 
 # Start symbol
 def Parse():
@@ -760,7 +807,7 @@ def Parse():
 
     # Headers
     Header_dict = Header(j)
-    Children.append(Header_dict["node"])
+    Children.append(Header_dict['node'])
 
     # Library
     Library_dict = libraries(Header_dict['index'])
@@ -768,18 +815,12 @@ def Parse():
         Children.append(Library_dict['node'])
 
     # Declaration
-    # Dec_dic = DecBlock(Library_dict['index'])
-    # Children.append(Dec_dic['node'])
+    Dec_dic = DecBlock(Library_dict['index'])
+    Children.append(Dec_dic['node'])
 
-    #Type
-    Type_dic = TypeBlock(Library_dict['index'])
-    Children.append(Type_dic['node'])
-
-    # Variables
-    Variables_dict = variables(Type_dic['index'])
-    Children.append(Variables_dict['node'])
-
-
+    #Block
+    # Block_dict = Block(Dec_dic['index'])
+    # Children.append(Block_dict['node'])
 
     Node = Tree('Program', Children)
     return Node
