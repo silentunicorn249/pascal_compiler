@@ -345,7 +345,8 @@ def Match(a, j):
         else:
             output["node"] = ["error"]
             output["index"] = j + 1
-            errors.append("Syntax error : " + Temp['Lex'])  ######### HN3'AYARHAAA
+            errors.append("Syntax error : " + Temp['Lex']+" Expected: " )  ######### HN3'AYARHAAA
+            errors.append(Temp)  ######### HN3'AYARHAAA
             return output
     else:
         output["node"] = ["error"]
@@ -780,9 +781,18 @@ def DecBlock(j):
         out['node'] = node
         out['index'] = out_dic['index']
         return out
-    # elif temp['token_type'] == Token_type.CONST:
-    #     ###########################out_const = constants
-    #
+    elif temp['token_type'] == Token_type.CONST:
+        out_dic = ConstBlock(j)
+        Children.append(out_dic['node'])
+        out_dic = DecBlock(out_dic['index'])
+        if (not (out_dic['node'] == '')):
+            Children.append(out_dic['node'])
+        node = Tree('Declaration Block:', Children)
+        out['node'] = node
+        out['index'] = out_dic['index']
+        return out
+
+
     elif temp['token_type'] == Token_type.TYPE:
         out_dic = TypeBlock(j)
         Children.append(out_dic['node'])
@@ -864,15 +874,15 @@ def Statement(j):
     Children = []
     out = dict()
     temp = TOKENS[j].to_dict()
-    if temp["token_type"] == Token_type.If:
-        out_if = Ifstatement(j)
-        Children.append(out_if['node'])
-        # Create a tree node
-        node = Tree('If', Children)
-        out['node'] = node
-        out['index'] = out_if['index']
-        return out
-
+    # if temp["token_type"] == Token_type.If:
+    #     out_if = Ifstatement(j)
+    #     Children.append(out_if['node'])
+    #     # Create a tree node
+    #     node = Tree('If', Children)
+    #     out['node'] = node
+    #     out['index'] = out_if['index']
+    #     return out
+    #
 
     # elif temp["token_type"] == Token_type.REPEAT:##################
     #     out_repeat = Ifstatement(j)
@@ -880,13 +890,14 @@ def Statement(j):
     #
 
 
-    elif temp["token_type"] == Token_type.FOR:
+    if temp["token_type"] == Token_type.FOR:
         out_for = forStatement(j)
         Children.append(out_for['node'])
         # Create a tree node
         node = Tree('For', Children)
         out['node'] = node
         out['index'] = out_for['index']
+        return out
 
 
     elif temp["token_type"] == Token_type.IDENTIFIER:
@@ -908,7 +919,7 @@ def Statement(j):
         out_vs = vs(out_lpar['index'])
         Children.append(out_vs['node'])
 
-        out_rpar = Match(Token_type.LEFT_PAR, out_vs['index'])
+        out_rpar = Match(Token_type.RIGHT_PAR, out_vs['index'])
         Children.append(out_rpar['node'])
 
         out_semi = Match(Token_type.Semicolon, out_rpar['index'])
@@ -930,7 +941,7 @@ def Statement(j):
         out_vs = vs(out_lpar['index'])
         Children.append(out_vs['node'])
 
-        out_rpar = Match(Token_type.LEFT_PAR, out_vs['index'])
+        out_rpar = Match(Token_type.RIGHT_PAR, out_vs['index'])
         Children.append(out_rpar['node'])
 
         out_semi = Match(Token_type.Semicolon, out_rpar['index'])
@@ -952,7 +963,7 @@ def Statement(j):
         out_id = Match(Token_type.IDENTIFIER, out_lpar['index'])
         Children.append(out_id['node'])
 
-        out_rpar = Match(Token_type.LEFT_PAR, out_id['index'])
+        out_rpar = Match(Token_type.RIGHT_PAR, out_id['index'])
         Children.append(out_rpar['node'])
 
         out_semi = Match(Token_type.Semicolon, out_rpar['index'])
@@ -974,7 +985,7 @@ def Statement(j):
         out_id = Match(Token_type.IDENTIFIER, out_lpar['index'])
         Children.append(out_id['node'])
 
-        out_rpar = Match(Token_type.LEFT_PAR, out_id['index'])
+        out_rpar = Match(Token_type.RIGHT_PAR, out_id['index'])
         Children.append(out_rpar['node'])
 
         out_semi = Match(Token_type.Semicolon, out_rpar['index'])
@@ -985,8 +996,9 @@ def Statement(j):
         out['node'] = node
         out['index'] = out_semi['index']
         return out
-def Ifstatement(j):
-    pass
+
+# def Ifstatement(j):
+#     pass
 def Assign(j):
     Children = []
     out = dict()
@@ -1126,7 +1138,7 @@ def Value(j):
     temp2 = TOKENS[j+1].to_dict()
     if temp1['token_type'] == Token_type.IDENTIFIER:
         ## TODO id + id through function Expression
-        out_value = Match(Token_type.IDENTIFIER, temp1['token_type'])
+        out_value = Match(Token_type.IDENTIFIER, j)
         Children.append(out_value['node'])
         # Create a tree node
         node = Tree('Value', Children)
@@ -1143,7 +1155,7 @@ def Value(j):
             out['index'] = out_value['index']
             return out
         else:
-            out_value = Match(Token_type.CONSTANT, temp1['token_type'])
+            out_value = Match(Token_type.CONSTANT, j)
             Children.append(out_value['node'])
             # Create a tree node
             node = Tree('Value', Children)
@@ -1160,7 +1172,7 @@ def Value(j):
             out['index'] = out_value['index']
             return out
         else:
-            out_value = Match(Token_type.STRING, temp1['token_type'])
+            out_value = Match(Token_type.STRING, j)
             Children.append(out_value['node'])
             # Create a tree node
             node = Tree('Value', Children)
@@ -1197,7 +1209,134 @@ def Experssion(j, type):
         out['index'] = out_string2['index']
         return out
 
+##Const BLock
+def ConstBlock(j):
+    temp = TOKENS[j].to_dict()
+    print("before If Temp")
+    print(temp)
+    if(temp['token_type']==Token_type.CONST):
+        print("After If Temp")
+        Children = []
+        out = dict()
+        out_Const = Match(Token_type.CONST, j)
+        Children.append(out_Const['node'])
+        out_ConstVar=ConstVar(out_Const['index'])
+        Children.append(out_ConstVar['node'])
 
+        #Create a tree node
+        node = Tree('ConstBlock', Children)
+        out['node'] = node
+        out['index'] = out_ConstVar['index']
+        return out
+    else:
+        out = {'node':'', 'index':j}
+        return out
+
+def ConstVar(j):
+    Children = []
+    out = dict()
+    out_cs = ConstStat(j)
+    Children.append(out_cs['node'])
+    out_constvard = constVar_d(out_cs['index'])
+    if (not (out_constvard['node'] == '')):
+        Children.append(out_constvard['node'])
+
+    node = Tree('ConstVar', Children)
+    out['node'] = node
+    out['index'] = out_constvard['index']
+    return out
+
+def constVar_d(j):
+    Children = []
+    out = dict()
+    temp = TOKENS[j].to_dict()
+    if temp["token_type"] == Token_type.IDENTIFIER:
+        out_conststat = ConstStat(j)
+        Children.append(out_conststat['node'])
+        out_ConstVar_d = constVar_d(out_conststat['index'])
+        if (not (out_ConstVar_d['node'] == '')):
+            Children.append(out_ConstVar_d['node'])
+
+        # Create a tree node
+        node = Tree('ConstVar_d', Children)
+        out['node'] = node
+        out['index'] = out_ConstVar_d['index']
+        return out
+
+    else:
+        out = {'node': '', 'index': j}
+        return out
+
+def ConstStat(j):
+    Children = []
+    out = dict()
+    out_id = Match(Token_type.IDENTIFIER, j)
+    Children.append(out_id['node'])
+    out_equal = Match(Token_type.EqualOp, out_id['index'])
+    Children.append(out_equal['node'])
+    out_value = Constvalue(out_equal['index'])
+    Children.append(out_value['node'])
+    out_semicolon = Match(Token_type.Semicolon, out_value['index'])
+    Children.append(out_semicolon['node'])
+
+    node = Tree('ConstStat', Children)
+    out['node'] = node
+    out['index'] = out_semicolon['index']
+    return out
+
+def Constvalue(j):
+    temp = TOKENS[j].to_dict()
+    #for integer/real
+    if temp['token_type']== Token_type.CONSTANT:
+        Children = []
+        out = dict()
+        out_int = Match(Token_type.CONSTANT,j)
+        Children.append(out_int['node'])
+
+        node = Tree('Constvalue', Children)
+        out['node'] = node
+        out['index'] = out_int['index']
+        return out
+    # for real if we change lexical real/integer
+    # elif temp['token_type'] == Token_type.Real:
+    #     Children = []
+    #     out = dict()
+    #     out_real = Match(Token_type.Real, j)
+    #     Children.append(out_real['node'])
+    #
+    #     node = Tree('ConstValue', Children)
+    #     out['node'] = node
+    #     out['index'] = out_real['index']
+    #     return out
+    elif temp['token_type'] == Token_type.STRING:
+        Children = []
+        out = dict()
+        out_string = Match(Token_type.STRING, j)
+        Children.append(out_string['node'])
+
+        node = Tree('ConstValue', Children)
+        out['node'] = node
+        out['index'] = out_string['index']
+        return out
+    elif temp['token_type'] == Token_type.SET:
+        Children = []
+        out = dict()
+        out_set = Match(Token_type.SET, j)
+        Children.append(out_set['node'])
+        out_of = Match(Token_type.OF, out_set['index'])
+        Children.append(out_of['node'])
+        out_leftpar = Match(Token_type.LEFT_PAR, out_of['index'])
+        Children.append(out_leftpar['node'])
+        out_vnames = vnames(out_leftpar['index'])
+        Children.append(out_vnames['node'])
+        out_rightPar = Match(Token_type.RIGHT_PAR, out_vnames['index'])
+        Children.append(out_rightPar['node'])
+
+        #Tree
+        node = Tree('ConstValue', Children)
+        out['node'] = node
+        out['index'] = out_rightPar['index']
+        return out
 def Parse():
     j = 0
     Children = []
@@ -1224,6 +1363,10 @@ def Parse():
     #Block
     Block_dict = Block(Dec_dic["index"])
     Children.append(Block_dict['node'])
+
+    #Enddot
+    End_dict = Match(Token_type.ENDDOT, Block_dict['index'])
+    Children.append(End_dict['node'])
 
     Node = Tree('Program', Children)
     return Node
