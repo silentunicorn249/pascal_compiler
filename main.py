@@ -1622,23 +1622,23 @@ def FuncBlock(j):
     out_semi = Match(Token_type.Semicolon, temp - 1)
     Children.append(out_semi['node'])
 
-    out_variables = variable(out_semi['index'])
+    out_variables = variables(out_semi['index'])
     Children.append(out_variables['node'])
-    out_block = Block(out_variables['index'])
+    out_block = fBlock(out_variables['index'])
     Children.append(out_block['node'])
 
     #Tree
-    node=Tree('FuncBlock',Children)
-    out['node']=node
-    out['index']= out_block['index']
+    node = Tree('FuncBlock', Children)
+    out['node'] = node
+    out['index'] = out_block['index']
     return out
 def F(j):
     global current_SemiColon
     temp = TOKENS[j].to_dict()
-    if  temp['token_type'] == Token_type.VAR:
+    if temp['token_type'] == Token_type.VAR or temp['token_type'] == Token_type.IDENTIFIER:
         Children = []
         out = dict()
-        out_vs = vstatement(j)
+        out_vs = fvstatement(j)
         Children.append(out_vs['node'])
 
         # Tree
@@ -1646,6 +1646,7 @@ def F(j):
         out['node'] = node
         out['index'] = out_vs['index']
         return out
+
     else:
         out = {'node': '', 'index': j}
         return out
@@ -1667,7 +1668,82 @@ def FP(j):
     else:
         out = {'node': '', 'index': j}
         return out
+def fvstatement(j):
+    global current_SemiColon
+    Children = []
+    out = dict()
+    out_vn = vnames(j)
+    Children.append(out_vn['node'])
+    out_colon = Match(Token_type.Colon, out_vn['index'])
+    Children.append(out_colon['node'])
+    temp = TOKENS[out_colon['index']].to_dict()
+    out_dt = dict()
+    if temp['Lex'] in Data_Types or temp['Lex'] in newDataTypes:
+        out_dt = Match(temp['token_type'], out_colon["index"])
+    else:
+        out_dt["node"] = ["error"]
+        out_dt["index"] = out_colon['index'] + 1
+        errors.append("Syntax error : " + temp['Lex'])
+    Children.append(out_dt["node"])
+    temp2 = TOKENS[out_dt['index']].to_dict()
+    if temp2['Lex'] == Token_type.Semicolon:
+        temp = SemiColonsErrorsFollow[current_SemiColon]
+        current_SemiColon += 1
+           #print("CurrentSemiColon: ")
+        #print(temp)
+        out_semi = Match(Token_type.Semicolon, temp - 1)
+        Children.append(out_semi["node"])
 
+        # Create a tree node
+        node = Tree('Variable Name', Children)
+        out['node'] = node
+        out['index'] = out_semi['index']
+        return out
+    else:
+        # Create a tree node
+        node = Tree('Variable Name', Children)
+        out['node'] = node
+        out['index'] = out_dt['index']
+        return out
+def fBlock(j):
+    global current_SemiColon
+    Token_types_aux =\
+        [Token_type.If, Token_type.Read, Token_type.FOR, Token_type.REPEAT,
+         Token_type.IDENTIFIER, Token_type.ReadLine, Token_type.Write, Token_type.WriteLine]
+    children = []
+    out = dict()
+    if (TOKENS[j - 1] == TOKENS[-1]):  ##########for not accessing out of index
+        out = {'node': '', 'index': j-1}
+        return out
+    temp = TOKENS[j].to_dict()
+    if temp["token_type"] == Token_type.Begin:
+        out_begin = Match(Token_type.Begin, j)
+        children.append(out_begin['node'])
+        out_stat = Statements(out_begin['index'])
+        children.append(out_stat['node'])
+        out_end = Match(Token_type.End, out_stat['index'])
+        children.append(out_end['node'])
+        if current_SemiColon >= len(SemiColonsErrorsFollow):
+            out = {'node': '', 'index': j - 1}
+            return out
+        temp1 = SemiColonsErrorsFollow[current_SemiColon]
+        current_SemiColon += 1
+        print("CurrentSemiColon: ")
+        print(temp1)
+        out_semi = Match(Token_type.Semicolon, temp1-1)
+        children.append(out_semi['node'])
+
+        node = Tree('Block', children)
+        out['node'] = node
+        out['index'] = out_semi['index']
+        return out
+    elif temp["token_type"] in Token_types_aux:
+        out_stats = Statements(j)
+        children.append(out_stats['node'])
+        node = Tree('Block', children)
+        out['node'] = node
+        out['index'] = out_stats['index']
+        return out
 def Parse():
     global current_SemiColon
     count = 0
@@ -1708,7 +1784,7 @@ def Parse():
     #Block
     Block_dict = Block(Beg_dic["index"])
     Children.append(Block_dict['node'])
-
+    print("Finished Block")
     #Enddot
     End_dict = Match(Token_type.ENDDOT, Block_dict['index'])
     Children.append(End_dict['node'])
