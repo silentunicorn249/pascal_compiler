@@ -1087,6 +1087,15 @@ def Statement(j):
         out['node'] = node
         out['index'] = out_block['index']
         return out
+    elif (temp['token_type'] == Token_type.FUNCTION):
+        out_FB = FuncBlock(j)
+        Children.append(out_FB['node'])
+
+        # Create a tree node
+        node = Tree('Function', Children)
+        out['node'] = node
+        out['index'] = out_FB['index']
+
     else:
         out = {"node": '', 'index': j}
         return out
@@ -1560,6 +1569,67 @@ def Constvalue(j):
 #     out['node']=node
 #     out['index']= out_semicolon['index']
 #     return out
+
+# FuncBlock
+def FuncBlock(j):
+    Children = []
+    out = dict()
+    out_function = Match(Token_type.FUNCTION,j)
+    Children.append(out_function['node'])
+    print(out_function)
+    out_id = Match(Token_type.IDENTIFIER,out_function['index'])
+    Children.append(out_id['node'])
+    out_leftpar = Match(Token_type.LEFT_PAR, out_id['index'])
+    Children.append(out_leftpar['node'])
+
+    #F
+    out_F = F(out_leftpar['index'])
+    Children.append(out_F['node'])
+
+    out_rightpar= Match(Token_type.RIGHT_PAR,out_F['index'])
+    Children.append(out_rightpar['node'])
+    out_colon = Match(Token_type.Colon, out_rightpar['index'])
+    Children.append(out_colon['node'])
+
+    temp = TOKENS[out_colon['index']].to_dict()
+    out_dt = dict()
+    if temp['Lex'] in Data_Types or temp['Lex'] in newDataTypes:
+        out_dt = Match(temp['token_type'], out_colon["index"])
+    else:
+        out_dt["node"] = ["error"]
+        out_dt["index"] = out_colon['index'] + 1
+        errors.append("Syntax error : " + temp['Lex'])
+    Children.append(out_dt["node"])
+
+    out_semicolon=Match(Token_type.Semicolon,['index'])
+    Children.append(out_semicolon['node'])
+    out_variables = variable(out_semicolon['index'])
+    Children.append(out_variables['node'])
+    out_block = Block(out_variables['index'])
+    Children.append(out_block['node'])
+
+    #Tree
+    node=Tree('FuncBlock',Children)
+    out['node']=node
+    out['index']= out_block['index']
+    return out
+def F(j):
+    temp = TOKENS[j].to_dict()
+    if  temp['token_type'] == Token_type.VAR:
+        Children = []
+        out = dict()
+        out_vs = vstatement(j)
+        Children.append(out_vs['node'])
+
+        # Tree
+        node = Tree('F', Children)
+        out['node'] = node
+        out['index'] = out_vs['index']
+        return out
+    else:
+        out = {'node': '', 'index': j}
+        return out
+
 def Parse():
     global current_SemiColon
     count = 0
