@@ -260,7 +260,7 @@ def find_token(text):
 
         elif endSCom:
             if i == '\n':
-                TOKENS.append(token("UnRecoginsed Comment", Token_type.ERROR))
+                TOKENS.append(token("UnRecoginsed", Token_type.ERROR))
                 endSCom = False
             elif i == '}':
                 endSCom = False
@@ -334,7 +334,7 @@ def find_token(text):
             checkSub(sub)
             sub = ''
     if isMCom:
-        TOKENS.append(token("UnRecoginsed Symbols", Token_type.ERROR))
+        TOKENS.append(token("UnRecoginsed", Token_type.ERROR))
 
 
 # Parsing
@@ -372,8 +372,8 @@ def Header(j):
 
     temp = SemiColonsErrorsFollow[current_SemiColon]
     current_SemiColon += 1
-       #print("CurrentSemiColon: ")
-    #print(temp)
+    print("CurrentSemiColon: ")
+    print(temp)
     out_semi = Match(Token_type.Semicolon, temp-1)
     Children.append(out_semi['node'])
 
@@ -559,8 +559,8 @@ def vstatement(j):
     Children.append(out_dt["node"])
     temp = SemiColonsErrorsFollow[current_SemiColon]
     current_SemiColon += 1
-       #print("CurrentSemiColon: ")
-    #print(temp)
+    # print("CurrentSemiColon: ")
+    # print(temp)
     out_semi = Match(Token_type.Semicolon, temp - 1)
     Children.append(out_semi["node"])
 
@@ -734,8 +734,8 @@ def TStatement(j):
     Children.append(out_dt["node"])
     temp = SemiColonsErrorsFollow[current_SemiColon]
     current_SemiColon += 1
-       #print("CurrentSemiColon: ")
-    #print(temp)
+    print("CurrentSemiColon: ")
+    print(temp)
     out_semi = Match(Token_type.Semicolon, temp - 1)
     Children.append(out_semi["node"])
 
@@ -935,29 +935,34 @@ def Statements_d(j):
     else:
         out = {"node": '', 'index': j}
         return out
+
 def Statement(j):
     global current_SemiColon
     Children = []
     out = dict()
     temp = TOKENS[j].to_dict()
     print(temp)
-    # if temp["token_type"] == Token_type.If:
-    #     out_if = Ifstatement(j)
-    #     Children.append(out_if['node'])
-    #     # Create a tree node
-    #     node = Tree('If', Children)
-    #     out['node'] = node
-    #     out['index'] = out_if['index']
-    #     return out
-    #
-
-    # elif temp["token_type"] == Token_type.REPEAT:##################
-    #     out_repeat = Ifstatement(j)
-    #     Children.append(out_repeat['node'])
-    #
+    if temp["token_type"] == Token_type.If:
+        out_if = ifStatement(j)
+        Children.append(out_if['node'])
+        # Create a tree node
+        node = Tree('If', Children)
+        out['node'] = node
+        out['index'] = out_if['index']
+        return out
 
 
-    if temp["token_type"] == Token_type.FOR:
+    elif temp["token_type"] == Token_type.REPEAT:
+        out_repeat = RepeatStatement(j)
+        Children.append(out_repeat['node'])
+        # Create a tree node
+        node = Tree('Repeat Until', Children)
+        out['node'] = node
+        out['index'] = out_repeat['index']
+        return out
+
+
+    elif temp["token_type"] == Token_type.FOR:
         out_for = forStatement(j)
         Children.append(out_for['node'])
         # Create a tree node
@@ -1096,14 +1101,10 @@ def Statement(j):
         out['node'] = node
         out['index'] = out_block['index']
         return out
-
-
     else:
         out = {"node": '', 'index': j}
         return out
 
-# def Ifstatement(j):
-#     pass
 def Assign(j):
     global current_SemiColon
     Children = []
@@ -1119,7 +1120,7 @@ def Assign(j):
         return out
     temp = SemiColonsErrorsFollow[current_SemiColon]
     current_SemiColon += 1
-       #print("CurrentSemiColon: ")
+    #print("CurrentSemiColon: ")
     #print(temp)
     out_semi = Match(Token_type.Semicolon, temp-1)
     Children.append(out_semi['node'])
@@ -1155,7 +1156,6 @@ def forStatement(j):
     out['index'] = block_dic['index']
     return out
 
-
 def forVar(j):
     global current_SemiColon
     children = []
@@ -1180,6 +1180,7 @@ def forVar(j):
         out['index'] = j
         errors.append("Syntax error : " + temp['Lex'])
         return out
+
 # Start symbol
 def vs(j):
     global current_SemiColon
@@ -1196,7 +1197,6 @@ def vs(j):
     out['node'] = node
     out['index'] = out_vss['index']
     return out
-
 
 def vss(j):
     global current_SemiColon
@@ -1225,8 +1225,6 @@ def vss(j):
         out = {'node': '', 'index': j}
         return out
 
-
-
 def vss_d(j):
     global current_SemiColon
     Children = []
@@ -1253,7 +1251,6 @@ def vss_d(j):
     else:
         out = {'node': '', 'index': j}
         return out
-
 
 def Value(j):
     global current_SemiColon
@@ -1319,7 +1316,6 @@ def Value(j):
         errors.append("Syntax error." + temp1['Lex'])
         return out
 
-
 def Experssion(j, type):
     global current_SemiColon
     Children = []
@@ -1375,12 +1371,12 @@ def Experssion(j, type):
         out['index'] = out_id2['index']
         return out
 
-
 ##Const BLock
 def ConstBlock(j):
     global current_SemiColon
     temp = TOKENS[j].to_dict()
     if(temp['token_type']==Token_type.CONST):
+        print("After If Temp")
         Children = []
         out = dict()
         out_Const = Match(Token_type.CONST, j)
@@ -1449,7 +1445,7 @@ def ConstStat(j):
         return out
     temp = SemiColonsErrorsFollow[current_SemiColon]
     current_SemiColon += 1
-       #print("CurrentSemiColon: ")
+    #print("CurrentSemiColon: ")
     #print(temp)
     out_semi = Match(Token_type.Semicolon, temp - 1)
     Children.append(out_semi['node'])
@@ -1515,71 +1511,189 @@ def Constvalue(j):
         return out
 
 
-# #ifStatement Still needs to be Tested
-# def ifStatement(j):
-#     Children = []
-#     out = dict()
-#     out_if = Match(Token_type.If, j)
-#     Children.append(out_if['node'])
-#     out_cond = Cond(out_if['index'])
-#     Children.append(out_cond['node'])
-#     out_then = Match(Token_type.THEN, out_cond['index'])
-#     Children.append(out_then['node'])
-#     out_Block = Block(out_then['index'])
-#     Children.append(out_Block['node'])
-#     out_ifstatement_d = ifStatement_d(out_Block['index'])
-#     Children.append(out_ifstatement_d['node'])
-#
-#     #Tree
-#     node = Tree('IfStatement', Children)
-#     out['node'] = node
-#     out['index'] = ifStatement['index']
-#     return out
-# def ifStatement_d(j):
-#     Children = []
-#     out = dict()
-#     temp = TOKENS[j].to_dict()
-#     if temp["token_type"]==Token_type.Else:
-#         out_else = Match(Token_type.Else, j)
-#         Children.append(out_else['node'])
-#         out_block = Block(out_else['index'])
-#         Children.append(out_block['node'])
-#
-#         # Tree
-#         node = Tree('IfStatement_d', Children)
-#         out['node'] = node
-#         out['index'] = out_block['index']
-#         return out
-#     else:
-#         out = {'node': '', 'index': j}
-#         return out
-# #RepeatStatement still needs to be tested
-# def RepeatStatement(j)
-#     Children = []
-#     out = dict()
-#     out_reapet = Match(Token_type.REPEAT,j)
-#     Children.append(out_reapet['node'])
-#     out_Block = Block(out_reapet['index'])
-#     Children.append(out_Block['node'])
-#     out_until = Until(out_Block['index'])
-#     Children.append(out_until['node'])
-#     out_Cond = Cond(out_until['index'])
-#     Children.append(out_Cond['node'])
-#         if current_SemiColon >= len(SemiColonsErrorsFollow):
-#             out = {'node': '', 'index': j - 1}
-#             return out
-# temp = SemiColonsErrorsFollow[current_SemiColon]
-#     current_SemiColon += 1
-#     print("CurrentSemiColon: ")
-#     print(temp)
-#     out_semi = Match(Token_type.Semicolon, temp - 1)
-#     Children.append(out_semi['node'])
-#
-#     #Tree
-#     node=Tree('RepeatStatement',Children)
-#     out['node']=node
-#     out['index']= out_semicolon['index']
-#     return out
+def ifStatement(j):
+    Children = []
+    out = dict()
+    out_if = Match(Token_type.If, j)
+    Children.append(out_if['node'])
+    out_cond = Cond(out_if['index'])
+    Children.append(out_cond['node'])
+    out_then = Match(Token_type.THEN, out_cond['index'])
+    Children.append(out_then['node'])
+    out_statement = Statements(out_then['index'])
+    Children.append(out_statement['node'])
+    out_ifstatement_d = ifStatement_d(out_statement['index'])
+    Children.append(out_ifstatement_d['node'])
+
+    #Tree
+    node = Tree('IfStatement', Children)
+    out['node'] = node
+    out['index'] = out_ifstatement_d['index']
+    return out
+def ifStatement_d(j):
+    Children = []
+    out = dict()
+    temp = TOKENS[j].to_dict()
+    temp2 = TOKENS[j+1].to_dict()
+    if temp["token_type"]==Token_type.Else:
+        if temp2["token_type"]==Token_type.If:
+            Children.append('Else if')
+            out_cond = Cond(j+2)
+            Children.append(out_cond['node'])
+            out_then = Match(Token_type.THEN, out_cond['index'])
+            Children.append(out_then['node'])
+            out_statement = Statements(out_then['index'])
+            Children.append(out_statement['node'])
+            out_ifstatement_d = ifStatement_d(out_statement['index'])
+            Children.append(out_ifstatement_d['node'])
+            # Tree
+            node = Tree('Else if', Children)
+            out['node'] = node
+            out['index'] = out_ifstatement_d['index']
+            return out
+        else:
+            out_else = Match(Token_type.Else, j)
+            Children.append(out_else['node'])
+            out_statement = Statement(out_else['index'])
+            Children.append(out_statement['node'])
+            # Tree
+            node = Tree('Else', Children)
+            out['node'] = node
+            out['index'] = out_statement['index']
+            return out
+
+
+    else:
+        out = {'node': '', 'index': j}
+        return out
+
+def RepeatStatement(j):
+    global current_SemiColon
+    Children = []
+    out = dict()
+    out_repeat = Match(Token_type.REPEAT,j)
+    Children.append(out_repeat['node'])
+    out_Statement = Statements(out_repeat['index'])
+    Children.append(out_Statement['node'])
+    out_until = Match(Token_type.UNTIL, out_Statement['index'])
+    Children.append(out_until['node'])
+    out_Cond = Cond(out_until['index'])
+    Children.append(out_Cond['node'])
+    if current_SemiColon >= len(SemiColonsErrorsFollow):
+        out = {'node': '', 'index': j - 1}
+        return out
+    temp = SemiColonsErrorsFollow[current_SemiColon]
+    current_SemiColon += 1
+    print("CurrentSemiColon: ")
+    print(temp)
+    out_semi = Match(Token_type.Semicolon, temp - 1)
+    Children.append(out_semi['node'])
+    # Tree
+    node = Tree('RepeatStatement',Children)
+    out['node'] = node
+    out['index'] = out_semi['index']
+    return out
+
+# cond -> (boolex) eq (boolex) | boolex
+# boolex -> boolvar relop boolvar
+# boolvar -> id | constant
+# eq -> <> | =
+
+def Cond(j):
+    Children = []
+    out = dict()
+    if (TOKENS[j - 1] == TOKENS[-1]):  ##########for not accessing out of index
+        out = {'node': '', 'index': j-1}
+        return out
+    temp = TOKENS[j].to_dict()
+    if (temp['token_type'] == Token_type.LEFT_PAR):
+        out_lp = Match(Token_type.LEFT_PAR, j)
+        Children.append(out_lp['node'])
+        out_bol = boolex(out_lp['index'])
+        Children.append(out_bol['node'])
+        out_rp = Match(Token_type.RIGHT_PAR, out_bol['index'])
+        Children.append(out_rp['node'])
+
+
+        # Matching equal operators
+        temp2 = TOKENS[out_rp['index']].to_dict()
+        eq = ['<>', '=']
+        if temp2['Lex'] in eq:
+            Children.append(temp2['Lex'])
+        else:
+            node = Tree('Condition', Children)
+            out['node'] = node
+            out['index'] = out_rp['index']
+            return out
+
+        out_lp = Match(Token_type.LEFT_PAR, out_rp['index'] + 1)
+        Children.append(out_lp['node'])
+        out_bol = boolex(out_lp['index'])
+        Children.append(out_bol['node'])
+        out_rp = Match(Token_type.RIGHT_PAR, out_bol['index'])
+        Children.append(out_rp['node'])
+
+        # Create a tree node
+        node = Tree('Condition', Children)
+        out['node'] = node
+        out['index'] = out_rp['index']
+        return out
+
+
+    elif (temp['token_type'] == Token_type.IDENTIFIER) or (temp['token_type'] == Token_type.CONSTANT):
+        out_bol = boolex(j)
+        Children.append(out_bol['node'])
+        # Create a tree node
+        node = Tree('Condition', Children)
+        out['node'] = node
+        out['index'] = out_bol['index']
+        return out
+
+    else:
+        out['node'] = ['error']
+        out['index'] = j + 1
+        errors.append("Syntax error." + temp['Lex'])
+        return out
+
+
+def boolex(j):
+    Children = []
+    out = dict()
+    temp = TOKENS[j].to_dict()
+
+    # Matching variables
+    if (temp['token_type'] == Token_type.IDENTIFIER):
+        out_var = Match(Token_type.IDENTIFIER, j)
+        Children.append(out_var['node'])
+
+    else:
+        out_var = Match(Token_type.CONSTANT, j)
+        Children.append(out_var['node'])
+
+    # Matching relational operator
+    temp = TOKENS[out_var['index']].to_dict()
+    if temp['Lex'] in Relational_Operators:
+        Children.append(temp['Lex'])
+    else:
+        out_err = dict()
+        out_err['node'] = ['error']
+        Children.append(out_err['node'])
+
+    # Matching variables
+    temp = TOKENS[out_var['index'] + 1].to_dict()
+    if (temp['token_type'] == Token_type.IDENTIFIER):
+        out_var2 = Match(Token_type.IDENTIFIER, out_var['index'] + 1)
+        Children.append(out_var2['node'])
+
+    else:
+        out_var2 = Match(Token_type.CONSTANT, out_var['index'] + 1)
+        Children.append(out_var2['node'])
+
+    # Create a tree node
+    node = Tree('Boolean Expression', Children)
+    out['node'] = node
+    out['index'] = out_var2['index']
+    return out
 
 # FuncBlock
 def FuncBlock(j):
@@ -1769,14 +1883,14 @@ def Parse():
     Dec_dic = DecBlock(Library_dict['index'])
     Children.append(Dec_dic['node'])
 
-    #Function
+    # Function
     func_dic = FP(Dec_dic['index'])
     if (not (func_dic['node'] == '')):
         Children.append(func_dic['node'])
 
     print("Finished Function")
     #Begin
-    Beg_dic = Match(Token_type.Begin, func_dic['index'])
+    Beg_dic = Match(Token_type.Begin,func_dic['index'])
     Children.append(Beg_dic['node'])
 
     print("Finished Begin")
