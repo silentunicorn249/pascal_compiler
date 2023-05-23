@@ -188,7 +188,7 @@ TOKENS = []
 errors = []
 newDataTypes = []
 SemiColonsErrorsFollow = []
-states = []
+current_SemiColon = 0
 # TODO write in the first 2 if conditions sub.lowercase()
 # Lexical Analysis
 # Defining the string checking functions
@@ -351,8 +351,7 @@ def Match(a, j):
         else:
             output["node"] = ["error"]
             output["index"] = j + 1
-            errors.append("Syntax error : " + Temp['Lex']+" Expected: " )  ######### HN3'AYARHAAA
-            errors.append(Temp)  ######### HN3'AYARHAAA
+            errors.append("Syntax error : " + Temp['Lex'] )  ######### HN3'AYARHAAA
             return output
     else:
         output["node"] = ["error"]
@@ -363,13 +362,19 @@ def Match(a, j):
 ## Header
 # Header Function
 def Header(j):
+    global current_SemiColon
     Children = []
     out = dict()
     out_pro = Match(Token_type.PROGRAM, j)
     Children.append(out_pro['node'])
     out_id = Match(Token_type.IDENTIFIER, out_pro['index'])
     Children.append(out_id['node'])
-    out_semi = Match(Token_type.Semicolon, out_id['index'])
+
+    temp = SemiColonsErrorsFollow[current_SemiColon]
+    current_SemiColon += 1
+    print("CurrentSemiColon: ")
+    print(temp)
+    out_semi = Match(Token_type.Semicolon, temp-1)
     Children.append(out_semi['node'])
 
     # Creating a node in the tree
@@ -381,6 +386,7 @@ def Header(j):
 
 ## Libraries
 def libraries(j):
+    global current_SemiColon
     temp = TOKENS[j].to_dict()
     if (temp['token_type'] == Token_type.Uses):
         Children = []
@@ -389,7 +395,11 @@ def libraries(j):
         Children.append(out_uses['node'])
         out_lib = librarynames(out_uses['index'])
         Children.append(out_lib['node'])
-        out_semi = Match(Token_type.Semicolon, out_lib['index'])
+        temp = SemiColonsErrorsFollow[current_SemiColon]
+        current_SemiColon += 1
+        print("CurrentSemiColon: ")
+        print(temp)
+        out_semi = Match(Token_type.Semicolon, temp-1)
         Children.append(out_semi['node'])
 
         # Create a tree node
@@ -403,6 +413,7 @@ def libraries(j):
 
 
 def librarynames(j):
+    global current_SemiColon
     Children = []
     out = dict()
     out_id = Match(Token_type.IDENTIFIER, j)
@@ -419,6 +430,7 @@ def librarynames(j):
 
 
 def extralibnames(j):
+    global current_SemiColon
     temp = TOKENS[j].to_dict()
     if temp['token_type'] == Token_type.Comma:
         Children = []
@@ -441,6 +453,7 @@ def extralibnames(j):
 
 
 def extralibnames_d(j):
+    global current_SemiColon
     temp = TOKENS[j].to_dict()
     if temp['token_type'] == Token_type.Comma:
         Children = []
@@ -465,6 +478,7 @@ def extralibnames_d(j):
 
 ## Variables
 def variables(j):
+    global current_SemiColon
     temp = TOKENS[j].to_dict()
     if temp['token_type'] == Token_type.VAR:
         Children = []
@@ -487,6 +501,7 @@ def variables(j):
 
 
 def variable(j):
+    global current_SemiColon
     Children = []
     out = dict()
     out_vs = vstatement(j)
@@ -503,6 +518,7 @@ def variable(j):
 
 
 def variable_d(j):
+    global current_SemiColon
     temp = TOKENS[j].to_dict()
     if temp['token_type'] == Token_type.IDENTIFIER:
         Children = []
@@ -525,6 +541,7 @@ def variable_d(j):
 
 
 def vstatement(j):
+    global current_SemiColon
     Children = []
     out = dict()
     out_vn = vnames(j)
@@ -539,7 +556,11 @@ def vstatement(j):
         out_dt["node"] = ["error"]
         out_dt["index"] = out_colon['index'] + 1
     Children.append(out_dt["node"])
-    out_semi = Match(Token_type.Semicolon, out_dt["index"])
+    temp = SemiColonsErrorsFollow[current_SemiColon]
+    current_SemiColon += 1
+    print("CurrentSemiColon: ")
+    print(temp)
+    out_semi = Match(Token_type.Semicolon, temp - 1)
     Children.append(out_semi["node"])
 
     # Create a tree node
@@ -550,6 +571,7 @@ def vstatement(j):
 
 
 def vnames(j):
+    global current_SemiColon
     Children = []
     out = dict()
     out_id = Match(Token_type.IDENTIFIER, j)
@@ -566,6 +588,7 @@ def vnames(j):
 
 
 def extravnames(j):
+    global current_SemiColon
     temp = TOKENS[j].to_dict()
     if temp['token_type'] == Token_type.Comma:
         Children = []
@@ -588,6 +611,7 @@ def extravnames(j):
 
 
 def extravnames_d(j):
+    global current_SemiColon
     temp = TOKENS[j].to_dict()
     if temp['token_type'] == Token_type.Comma:
         Children = []
@@ -611,6 +635,7 @@ def extravnames_d(j):
 # TODO Enum type and subrange
 ## Types
 def TypeBlock(j):
+    global current_SemiColon
     temp = TOKENS[j].to_dict()
     if temp['token_type'] == Token_type.TYPE:
         Children = []
@@ -633,6 +658,7 @@ def TypeBlock(j):
 
 
 def TypeDec(j):
+    global current_SemiColon
     Children = []
     out = dict()
     out_ts = TStatement(j)
@@ -650,6 +676,7 @@ def TypeDec(j):
 
 
 def TypeDec_d(j):
+    global current_SemiColon
     Children = []
     out = dict()
     # if (TOKENS[j-1]==TOKENS[-1]): ##########for not accessing out of index
@@ -675,6 +702,7 @@ def TypeDec_d(j):
 
 
 def TStatement(j):
+    global current_SemiColon
     Children = []
     out = dict()
     out_tn = TNames(j)
@@ -702,7 +730,11 @@ def TStatement(j):
         out_dt['node'] = ["error"]
         out_dt['index'] = out_equal["index"] + 1
     Children.append(out_dt["node"])
-    out_semi = Match(Token_type.Semicolon, out_dt["index"])
+    temp = SemiColonsErrorsFollow[current_SemiColon]
+    current_SemiColon += 1
+    print("CurrentSemiColon: ")
+    print(temp)
+    out_semi = Match(Token_type.Semicolon, temp - 1)
     Children.append(out_semi["node"])
 
     # Create a tree node
@@ -713,6 +745,7 @@ def TStatement(j):
 
 
 def TNames(j):
+    global current_SemiColon
     Children = []
     out = dict()
     out_id = Match(Token_type.IDENTIFIER, j)
@@ -729,6 +762,7 @@ def TNames(j):
 
 
 def ExtraTNames(j):
+    global current_SemiColon
     temp = TOKENS[j].to_dict()
     if temp['token_type'] == Token_type.Comma:
         Children = []
@@ -752,6 +786,7 @@ def ExtraTNames(j):
 
 
 def ExtraTNames_d(j):
+    global current_SemiColon
     temp = TOKENS[j].to_dict()
     if temp['token_type'] == Token_type.Comma:
         Children = []
@@ -774,8 +809,12 @@ def ExtraTNames_d(j):
         return out
 
 def DecBlock(j):
+    global current_SemiColon
     Children = []
     out = dict()
+    if (TOKENS[j - 1] == TOKENS[-1]):  ##########for not accessing out of index
+        out = {'node': '', 'index': j-1}
+        return out
     temp = TOKENS[j].to_dict()
     if temp['token_type'] == Token_type.VAR:
         out_dic = variables(j)
@@ -814,11 +853,15 @@ def DecBlock(j):
         return out
 
 def Block(j):
+    global current_SemiColon
     Token_types_aux =\
         [Token_type.If, Token_type.Read, Token_type.FOR, Token_type.REPEAT,
          Token_type.IDENTIFIER, Token_type.ReadLine, Token_type.Write, Token_type.WriteLine]
     children = []
     out = dict()
+    if (TOKENS[j - 1] == TOKENS[-1]):  ##########for not accessing out of index
+        out = {'node': '', 'index': j-1}
+        return out
     temp = TOKENS[j].to_dict()
     if temp["token_type"] == Token_type.Begin:
         out_begin = Match(Token_type.Begin, j)
@@ -827,7 +870,11 @@ def Block(j):
         children.append(out_stat['node'])
         out_end = Match(Token_type.End, out_stat['index'])
         children.append(out_end['node'])
-        out_semi = Match(Token_type.Semicolon, out_end['index'])
+        temp = SemiColonsErrorsFollow[current_SemiColon]
+        current_SemiColon += 1
+        print("CurrentSemiColon: ")
+        print(temp)
+        out_semi = Match(Token_type.Semicolon, temp-1)
         children.append(out_semi['node'])
         out_block = Block_d(out_semi['index'])
         children.append(out_block['node'])
@@ -847,6 +894,7 @@ def Block(j):
         return out
 
 def Block_d(j):
+    global current_SemiColon
     Token_types_aux =\
         [Token_type.If, Token_type.Read, Token_type.FOR, Token_type.REPEAT,
          Token_type.IDENTIFIER, Token_type.ReadLine, Token_type.Write, Token_type.WriteLine]
@@ -860,7 +908,11 @@ def Block_d(j):
         children.append(out_stat['node'])
         out_end = Match(Token_type.End, out_stat['index'])
         children.append(out_end['node'])
-        out_semi = Match(Token_type.Semicolon, out_end['index'])
+        temp = SemiColonsErrorsFollow[current_SemiColon]
+        current_SemiColon += 1
+        print("CurrentSemiColon: ")
+        print(temp)
+        out_semi = Match(Token_type.Semicolon, temp-1)
         children.append(out_semi['node'])
         out_block = Block_d(out_semi['index'])
         children.append(out_block['node'])
@@ -880,6 +932,7 @@ def Block_d(j):
         return out
 
 def Statements(j):
+    global current_SemiColon
     children = []
     out = dict()
     out_stat = Statement(j)
@@ -893,9 +946,10 @@ def Statements(j):
     return out
 
 def Statements_d(j):
+    global current_SemiColon
     Token_types_aux =\
         [Token_type.If, Token_type.Read, Token_type.FOR, Token_type.REPEAT,
-         Token_type.IDENTIFIER, Token_type.ReadLine, Token_type.Write, Token_type.WriteLine]
+         Token_type.IDENTIFIER, Token_type.ReadLine, Token_type.Write, Token_type.WriteLine,Token_type.Begin]
     children = []
     out = dict()
     temp = TOKENS[j].to_dict()
@@ -913,6 +967,7 @@ def Statements_d(j):
         out = {"node": '', 'index': j}
         return out
 def Statement(j):
+    global current_SemiColon
     Children = []
     out = dict()
     temp = TOKENS[j].to_dict()
@@ -963,7 +1018,11 @@ def Statement(j):
         out_rpar = Match(Token_type.RIGHT_PAR, out_vs['index'])
         Children.append(out_rpar['node'])
 
-        out_semi = Match(Token_type.Semicolon, out_rpar['index'])
+        temp = SemiColonsErrorsFollow[current_SemiColon]
+        current_SemiColon += 1
+        print("CurrentSemiColon: ")
+        print(temp)
+        out_semi = Match(Token_type.Semicolon, temp-1)
         Children.append(out_semi['node'])
 
         # Create a tree node
@@ -985,7 +1044,11 @@ def Statement(j):
         out_rpar = Match(Token_type.RIGHT_PAR, out_vs['index'])
         Children.append(out_rpar['node'])
 
-        out_semi = Match(Token_type.Semicolon, out_rpar['index'])
+        temp = SemiColonsErrorsFollow[current_SemiColon]
+        current_SemiColon += 1
+        print("CurrentSemiColon: ")
+        print(temp)
+        out_semi = Match(Token_type.Semicolon, temp-1)
         Children.append(out_semi['node'])
 
         # Create a tree node
@@ -1007,7 +1070,11 @@ def Statement(j):
         out_rpar = Match(Token_type.RIGHT_PAR, out_id['index'])
         Children.append(out_rpar['node'])
 
-        out_semi = Match(Token_type.Semicolon, out_rpar['index'])
+        temp = SemiColonsErrorsFollow[current_SemiColon]
+        current_SemiColon += 1
+        print("CurrentSemiColon: ")
+        print(temp)
+        out_semi = Match(Token_type.Semicolon, temp-1)
         Children.append(out_semi['node'])
 
         # Create a tree node
@@ -1029,7 +1096,11 @@ def Statement(j):
         out_rpar = Match(Token_type.RIGHT_PAR, out_id['index'])
         Children.append(out_rpar['node'])
 
-        out_semi = Match(Token_type.Semicolon, out_rpar['index'])
+        temp = SemiColonsErrorsFollow[current_SemiColon]
+        current_SemiColon += 1
+        print("CurrentSemiColon: ")
+        print(temp)
+        out_semi = Match(Token_type.Semicolon, temp-1)
         Children.append(out_semi['node'])
 
         # Create a tree node
@@ -1051,6 +1122,7 @@ def Statement(j):
 # def Ifstatement(j):
 #     pass
 def Assign(j):
+    global current_SemiColon
     Children = []
     out = dict()
     out_id = Match(Token_type.IDENTIFIER,j)
@@ -1059,7 +1131,11 @@ def Assign(j):
     Children.append(out_ass['node'])
     out_value = Value(out_ass['index'])
     Children.append(out_value['node'])
-    out_semi = Match(Token_type.Semicolon, out_value['index'])
+    temp = SemiColonsErrorsFollow[current_SemiColon]
+    current_SemiColon += 1
+    print("CurrentSemiColon: ")
+    print(temp)
+    out_semi = Match(Token_type.Semicolon, temp-1)
     Children.append(out_semi['node'])
 
     node = Tree('Assign', Children)
@@ -1068,6 +1144,7 @@ def Assign(j):
     return out
 
 def forStatement(j):
+    global current_SemiColon
     children = []
     out = dict()
     for_key = Match(Token_type.FOR, j)
@@ -1094,6 +1171,7 @@ def forStatement(j):
 
 
 def forVar(j):
+    global current_SemiColon
     children = []
     out = dict()
     temp = TOKENS[j].to_dict()
@@ -1117,6 +1195,7 @@ def forVar(j):
         return out
 # Start symbol
 def vs(j):
+    global current_SemiColon
     Children = []
     out = dict()
     out_val = Value(j)
@@ -1133,6 +1212,7 @@ def vs(j):
 
 
 def vss(j):
+    global current_SemiColon
     Children = []
     out = dict()
     temp = TOKENS[j].to_dict()
@@ -1161,6 +1241,7 @@ def vss(j):
 
 
 def vss_d(j):
+    global current_SemiColon
     Children = []
     out = dict()
     temp = TOKENS[j].to_dict()
@@ -1188,6 +1269,7 @@ def vss_d(j):
 
 
 def Value(j):
+    global current_SemiColon
     Children = []
     out = dict()
     temp1 = TOKENS[j].to_dict()
@@ -1242,6 +1324,7 @@ def Value(j):
 
 
 def Experssion(j, type):
+    global current_SemiColon
     Children = []
     out = dict()
     if type == "constant":
@@ -1271,6 +1354,7 @@ def Experssion(j, type):
 
 ##Const BLock
 def ConstBlock(j):
+    global current_SemiColon
     temp = TOKENS[j].to_dict()
     print("before If Temp")
     print(temp)
@@ -1293,6 +1377,7 @@ def ConstBlock(j):
         return out
 
 def ConstVar(j):
+    global current_SemiColon
     Children = []
     out = dict()
     out_cs = ConstStat(j)
@@ -1307,6 +1392,7 @@ def ConstVar(j):
     return out
 
 def constVar_d(j):
+    global current_SemiColon
     Children = []
     out = dict()
     temp = TOKENS[j].to_dict()
@@ -1328,6 +1414,7 @@ def constVar_d(j):
         return out
 
 def ConstStat(j):
+    global current_SemiColon
     Children = []
     out = dict()
     out_id = Match(Token_type.IDENTIFIER, j)
@@ -1336,15 +1423,20 @@ def ConstStat(j):
     Children.append(out_equal['node'])
     out_value = Constvalue(out_equal['index'])
     Children.append(out_value['node'])
-    out_semicolon = Match(Token_type.Semicolon, out_value['index'])
-    Children.append(out_semicolon['node'])
+    temp = SemiColonsErrorsFollow[current_SemiColon]
+    current_SemiColon += 1
+    print("CurrentSemiColon: ")
+    print(temp)
+    out_semi = Match(Token_type.Semicolon, temp - 1)
+    Children.append(out_semi['node'])
 
     node = Tree('ConstStat', Children)
     out['node'] = node
-    out['index'] = out_semicolon['index']
+    out['index'] = out_semi['index']
     return out
 
 def Constvalue(j):
+    global current_SemiColon
     temp = TOKENS[j].to_dict()
     #for integer/real
     if temp['token_type']== Token_type.CONSTANT:
@@ -1449,8 +1541,12 @@ def Constvalue(j):
 #     Children.append(out_until['node'])
 #     out_Cond = Cond(out_until['index'])
 #     Children.append(out_Cond['node'])
-#     out_semicolon = Match(Token_type.Semicolon, j)
-#     Children.append(out_semicolon['node'])
+# temp = SemiColonsErrorsFollow[current_SemiColon]
+#     current_SemiColon += 1
+#     print("CurrentSemiColon: ")
+#     print(temp)
+#     out_semi = Match(Token_type.Semicolon, temp - 1)
+#     Children.append(out_semi['node'])
 #
 #     #Tree
 #     node=Tree('RepeatStatement',Children)
@@ -1458,10 +1554,14 @@ def Constvalue(j):
 #     out['index']= out_semicolon['index']
 #     return out
 def Parse():
+    global current_SemiColon
+    count = 0
     for i in TOKENS:
-        if i == ';':
-            SemiColonsErrorsFollow.append(i)
-    print((SemiColonsErrorsFollow))
+        count += 1
+        temp = i.to_dict()
+        if temp['token_type'] == Token_type.Semicolon:
+            SemiColonsErrorsFollow.append(count)
+    print(SemiColonsErrorsFollow)
     j = 0
     Children = []
 
