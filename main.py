@@ -876,8 +876,9 @@ def Block(j):
         print(temp)
         out_semi = Match(Token_type.Semicolon, temp-1)
         children.append(out_semi['node'])
-        out_block = Block_d(out_semi['index'])
-        children.append(out_block['node'])
+        out_block = Block(out_semi['index'])
+        if (not (out_block['node'] == '')):
+            children.append(out_block['node'])
         node = Tree('Block', children)
         out['node'] = node
         out['index'] = out_block['index']
@@ -886,44 +887,6 @@ def Block(j):
         out_stats = Statements(j)
         children.append(out_stats['node'])
         node = Tree('Block', children)
-        out['node'] = node
-        out['index'] = out_stats['index']
-        return out
-    else:
-        out = {"node": '', 'index': j}
-        return out
-
-def Block_d(j):
-    global current_SemiColon
-    Token_types_aux =\
-        [Token_type.If, Token_type.Read, Token_type.FOR, Token_type.REPEAT,
-         Token_type.IDENTIFIER, Token_type.ReadLine, Token_type.Write, Token_type.WriteLine]
-    children = []
-    out = dict()
-    temp = TOKENS[j].to_dict()
-    if temp["token_type"] == Token_type.Begin:
-        out_begin = Match(Token_type.Begin, j)
-        children.append(out_begin['node'])
-        out_stat = Statements(out_begin['index'])
-        children.append(out_stat['node'])
-        out_end = Match(Token_type.End, out_stat['index'])
-        children.append(out_end['node'])
-        temp = SemiColonsErrorsFollow[current_SemiColon]
-        current_SemiColon += 1
-        print("CurrentSemiColon: ")
-        print(temp)
-        out_semi = Match(Token_type.Semicolon, temp-1)
-        children.append(out_semi['node'])
-        out_block = Block_d(out_semi['index'])
-        children.append(out_block['node'])
-        node = Tree('Block_d', children)
-        out['node'] = node
-        out['index'] = out_block['index']
-        return out
-    elif temp["token_type"] in Token_types_aux:
-        out_stats = Statements(j)
-        children.append(out_stats['node'])
-        node = Tree('Block_d', children)
         out['node'] = node
         out['index'] = out_stats['index']
         return out
@@ -936,7 +899,8 @@ def Statements(j):
     children = []
     out = dict()
     out_stat = Statement(j)
-    children.append(out_stat['node'])
+    if (not (out_stat['node'] == '')):
+        children.append(out_stat['node'])
     out_stats_d = Statements_d(out_stat['index'])
     if (not (out_stats_d['node'] == '')):
         children.append(out_stats_d['node'])
@@ -1117,6 +1081,9 @@ def Statement(j):
         node = Tree('Block', Children)
         out['node'] = node
         out['index'] = out_block['index']
+        return out
+    else:
+        out = {"node": '', 'index': j}
         return out
 
 # def Ifstatement(j):
