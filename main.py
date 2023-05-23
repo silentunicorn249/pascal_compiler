@@ -211,7 +211,7 @@ def checkSub(sub):
         TOKENS.append(token(sub, Token_type.STRING))
 
     # Identifiers - Variables Nomenclature
-    elif re.match("^[a-zA-Z][a-zA-Z0-9]*$", sub):
+    elif re.match("^[a-zA-Z][a-zA-Z0-9]|_*$", sub):
         TOKENS.append(token(sub, Token_type.IDENTIFIER))
 
     else:
