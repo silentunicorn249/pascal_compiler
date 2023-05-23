@@ -260,7 +260,7 @@ def find_token(text):
 
         elif endSCom:
             if i == '\n':
-                TOKENS.append(token("UnRecoginsed", Token_type.ERROR))
+                TOKENS.append(token("UnRecoginsed Comment", Token_type.ERROR))
                 endSCom = False
             elif i == '}':
                 endSCom = False
@@ -282,7 +282,11 @@ def find_token(text):
         ###################### Strings ######################
         elif isStr:
             sub += i
-            if i == '\'':
+            if i == '\n':
+                isStr = False
+                TOKENS.append(token("UnRecoginsed String", Token_type.ERROR))
+                sub = ''
+            elif i == '\'':
                 isStr = False
                 checkSub(sub)
                 sub = ''
@@ -365,7 +369,14 @@ def Header(j):
     Children.append(out_pro['node'])
     out_id = Match(Token_type.IDENTIFIER, out_pro['index'])
     Children.append(out_id['node'])
-    out_semi = Match(Token_type.Semicolon, out_id['index'])
+    if out_id["node"] == ["error"]:
+        for i in SemiColonsErrorsFollow:
+            if out_id['index'] < i:
+                out_semi = Match(Token_type.Semicolon, i)
+                break
+    else:
+        out_semi = Match(Token_type.Semicolon, out_id["index"])
+
     Children.append(out_semi['node'])
 
     # Creating a node in the tree
@@ -385,7 +396,13 @@ def libraries(j):
         Children.append(out_uses['node'])
         out_lib = librarynames(out_uses['index'])
         Children.append(out_lib['node'])
-        out_semi = Match(Token_type.Semicolon, out_lib['index'])
+        if out_lib["node"] == ["error"]:
+            for i in SemiColonsErrorsFollow:
+                if out_lib['index'] < i:
+                    out_semi = Match(Token_type.Semicolon, i)
+                    break
+        else:
+            out_semi = Match(Token_type.Semicolon, out_lib["index"])
         Children.append(out_semi['node'])
 
         # Create a tree node
@@ -535,7 +552,14 @@ def vstatement(j):
         out_dt["node"] = ["error"]
         out_dt["index"] = out_colon['index'] + 1
     Children.append(out_dt["node"])
-    out_semi = Match(Token_type.Semicolon, out_dt["index"])
+
+    if out_dt["node"] == ["error"]:
+        for i in SemiColonsErrorsFollow:
+            if out_dt['index'] < i:
+                out_semi = Match(Token_type.Semicolon, i)
+                break
+    else:
+        out_semi = Match(Token_type.Semicolon, out_dt["index"])
     Children.append(out_semi["node"])
 
     # Create a tree node
@@ -698,7 +722,14 @@ def TStatement(j):
         out_dt['node'] = ["error"]
         out_dt['index'] = out_equal["index"] + 1
     Children.append(out_dt["node"])
-    out_semi = Match(Token_type.Semicolon, out_dt["index"])
+    if out_dt["node"] == ["error"]:
+        for i in SemiColonsErrorsFollow:
+            if out_dt['index'] < i:
+                out_semi = Match(Token_type.Semicolon, i)
+                break
+    else:
+        out_semi = Match(Token_type.Semicolon, out_dt["index"])
+
     Children.append(out_semi["node"])
 
     # Create a tree node
@@ -823,8 +854,17 @@ def Block(j):
         children.append(out_stat['node'])
         out_end = Match(Token_type.End, out_stat['index'])
         children.append(out_end['node'])
-        out_semi = Match(Token_type.Semicolon, out_end['index'])
-        children.append(out_semi['node'])
+        if out_end["node"] == ["error"]:
+            print(out_end['index'])
+            for i in SemiColonsErrorsFollow:
+                print(i)
+                if out_end['index'] < i:
+                    out_semi = Match(Token_type.Semicolon, i)
+                    print("HENAAAAA")
+                    break
+        else:
+            out_semi = Match(Token_type.Semicolon, out_end["index"])
+        children.append(out_semi["node"])
         node = Tree('Block', children)
         out['node'] = node
         out['index'] = out_semi['index']
@@ -862,8 +902,17 @@ def Statements_d(j):
     temp = TOKENS[j].to_dict()
     if temp["token_type"] in Token_types_aux:
         out_stat = Statement(j)
-        children.append(out_stat['node'])
-        out_stats_d = Statements_d(out_stat['index'])
+        if out_stat["node"] == ["error"]:
+            for i in SemiColonsErrorsFollow:
+                print(out_stat['index'])
+                if out_stat['index'] < i:
+                    out_semi = Match(Token_type.Semicolon, i)
+                    break
+        else:
+            out_semi = Match(Token_type.Semicolon, out_stat["index"])
+
+        children.append(out_semi['node'])
+        out_stats_d = Statements_d(out_semi['index'])
         if (not (out_stats_d['node'] == '')):
             children.append(out_stats_d['node'])
         node = Tree('Statements_d', children)
@@ -915,17 +964,22 @@ def Statement(j):
     elif (temp['token_type'] == Token_type.Write):
         out_write = Match(Token_type.Write, j)
         Children.append(out_write['node'])
-
         out_lpar = Match(Token_type.LEFT_PAR, out_write['index'])
         Children.append(out_lpar['node'])
-
         out_vs = vs(out_lpar['index'])
         Children.append(out_vs['node'])
-
         out_rpar = Match(Token_type.RIGHT_PAR, out_vs['index'])
         Children.append(out_rpar['node'])
 
-        out_semi = Match(Token_type.Semicolon, out_rpar['index'])
+        if out_rpar["node"] == ["error"]:
+            for i in SemiColonsErrorsFollow:
+                print(out_rpar['index'])
+                if out_rpar['index'] < i:
+                    out_semi = Match(Token_type.Semicolon, i)
+                    break
+        else:
+            out_semi = Match(Token_type.Semicolon, out_rpar["index"])
+
         Children.append(out_semi['node'])
 
         # Create a tree node
@@ -947,7 +1001,15 @@ def Statement(j):
         out_rpar = Match(Token_type.RIGHT_PAR, out_vs['index'])
         Children.append(out_rpar['node'])
 
-        out_semi = Match(Token_type.Semicolon, out_rpar['index'])
+        if out_rpar["node"] == ["error"]:
+            print(out_rpar['index'])
+            for i in SemiColonsErrorsFollow:
+                if out_rpar['index'] <=i:
+                    out_semi = Match(Token_type.Semicolon, i)
+                    break
+        else:
+            out_semi = Match(Token_type.Semicolon, out_rpar["index"])
+
         Children.append(out_semi['node'])
 
         # Create a tree node
@@ -969,7 +1031,14 @@ def Statement(j):
         out_rpar = Match(Token_type.RIGHT_PAR, out_id['index'])
         Children.append(out_rpar['node'])
 
-        out_semi = Match(Token_type.Semicolon, out_rpar['index'])
+        if out_rpar["node"] == ["error"]:
+            print(out_rpar['index'])
+            for i in SemiColonsErrorsFollow:
+                if out_rpar['index'] < i:
+                    out_semi = Match(Token_type.Semicolon, i)
+                    break
+        else:
+            out_semi = Match(Token_type.Semicolon, out_rpar["index"])
         Children.append(out_semi['node'])
 
         # Create a tree node
@@ -991,7 +1060,15 @@ def Statement(j):
         out_rpar = Match(Token_type.RIGHT_PAR, out_id['index'])
         Children.append(out_rpar['node'])
 
-        out_semi = Match(Token_type.Semicolon, out_rpar['index'])
+        if out_rpar["node"] == ["error"]:
+            print(out_rpar['index'])
+            for i in SemiColonsErrorsFollow:
+                if out_rpar['index'] < i:
+                    out_semi = Match(Token_type.Semicolon, i)
+                    break
+        else:
+            out_semi = Match(Token_type.Semicolon, out_rpar["index"])
+
         Children.append(out_semi['node'])
 
         # Create a tree node
@@ -1011,7 +1088,14 @@ def Assign(j):
     Children.append(out_ass['node'])
     out_value = Value(out_ass['index'])
     Children.append(out_value['node'])
-    out_semi = Match(Token_type.Semicolon, out_value['index'])
+
+    if out_value["node"] == ["error"]:
+        for i in SemiColonsErrorsFollow:
+            if out_value['index'] < i:
+                out_semi = Match(Token_type.Semicolon, i)
+                break
+    else:
+        out_semi = Match(Token_type.Semicolon, out_value["index"])
     Children.append(out_semi['node'])
 
     node = Tree('Assign', Children)
@@ -1288,12 +1372,18 @@ def ConstStat(j):
     Children.append(out_equal['node'])
     out_value = Constvalue(out_equal['index'])
     Children.append(out_value['node'])
-    out_semicolon = Match(Token_type.Semicolon, out_value['index'])
-    Children.append(out_semicolon['node'])
+    if out_value["node"] == ["error"]:
+        for i in SemiColonsErrorsFollow:
+            if out_value['index'] < i:
+                out_semi = Match(Token_type.Semicolon, i)
+                break
+    else:
+        out_semi = Match(Token_type.Semicolon, out_value["index"])
+    Children.append(out_semi['node'])
 
     node = Tree('ConstStat', Children)
     out['node'] = node
-    out['index'] = out_semicolon['index']
+    out['index'] = out_semi['index']
     return out
 
 def Constvalue(j):
@@ -1401,19 +1491,30 @@ def Constvalue(j):
 #     Children.append(out_until['node'])
 #     out_Cond = Cond(out_until['index'])
 #     Children.append(out_Cond['node'])
-#     out_semicolon = Match(Token_type.Semicolon, j)
-#     Children.append(out_semicolon['node'])
+
+#        if out_Cond["node"] == ["error"]:
+#         for i in SemiColonsErrorsFollow:
+#             if out_Cond['index'] < i:
+#                 out_semi = Match(Token_type.Semicolon, i)
+#                 break
+#     else:
+#         out_semi = Match(Token_type.Semicolon, out_Cond["index"])
+
+#     Children.append(out_semi['node'])
 #
 #     #Tree
 #     node=Tree('RepeatStatement',Children)
 #     out['node']=node
-#     out['index']= out_semicolon['index']
+#     out['index']= out_semi['index']
 #     return out
 def Parse():
+    count = 0
     for i in TOKENS:
-        if i == ';':
-            SemiColonsErrorsFollow.append(i)
-    print((SemiColonsErrorsFollow))
+        count += 1
+        temp = i.to_dict()
+        if temp['token_type'] == Token_type.Semicolon:
+            SemiColonsErrorsFollow.append(count)
+    print(SemiColonsErrorsFollow)
     j = 0
     Children = []
 
