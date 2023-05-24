@@ -1890,11 +1890,7 @@ def fBlock(j):
         out['index'] = out_stats['index']
         return out
 def Parse():
-    global current_SemiColon, TOKENS, errors, newDataTypes, SemiColonsErrorsFollow
-    TOKENS = []
-    errors = []
-    newDataTypes = []
-    SemiColonsErrorsFollow = []
+    global current_SemiColon
     current_SemiColon = 0
     count = 0
     for i in TOKENS:
