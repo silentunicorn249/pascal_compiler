@@ -391,6 +391,9 @@ def Header(j):
 ## Libraries
 def libraries(j):
     global current_SemiColon
+    if (TOKENS[j - 1] == TOKENS[-1]):  ##########for not accessing out of index
+        out = {'node': '', 'index': j-1}
+        return out
     temp = TOKENS[j].to_dict()
     if (temp['token_type'] == Token_type.Uses):
         Children = []
@@ -1534,7 +1537,7 @@ def ifStatement(j):
     Children.append(out_cond['node'])
     out_then = Match(Token_type.THEN, out_cond['index'])
     Children.append(out_then['node'])
-    out_statement = Statements(out_then['index'])
+    out_statement = Statement(out_then['index'])
     Children.append(out_statement['node'])
     out_ifstatement_d = ifStatement_d(out_statement['index'])
     if (not (out_ifstatement_d['node'] == '')):
@@ -1912,7 +1915,8 @@ def Parse():
 
     # Declaration
     Dec_dic = DecBlock(Library_dict['index'])
-    Children.append(Dec_dic['node'])
+    if (not (Dec_dic['node'] == '')):
+        Children.append(Dec_dic['node'])
 
     # Function
     func_dic = FP(Dec_dic['index'])
@@ -1928,7 +1932,8 @@ def Parse():
 
     #Block
     Block_dict = Block(Beg_dic["index"])
-    Children.append(Block_dict['node'])
+    if (not (Block_dict['node'] == '')):
+        Children.append(Block_dict['node'])
     print("Finished Block")
     #Enddot
     End_dict = Match(Token_type.ENDDOT, Block_dict['index'])
@@ -2095,13 +2100,6 @@ def Scan():
 
 button1 = tk.Button(text='Scan', command=Scan, bg='brown',
                     fg='white', font=('helvetica', 9, 'bold'))
+
 canvas1.create_window(200, 180, window=button1)
-
-
-
-#
-# button2 = tk.Button(text='DFA', command=open_dfa, bg='brown',
-#                     fg='white', font=('helvetica', 9, 'bold'))
-# canvas1.create_window(200, 220, window=button2)
-
 root.mainloop()
