@@ -211,7 +211,7 @@ def checkSub(sub):
         TOKENS.append(token(sub, Token_type.STRING))
 
     # Identifiers - Variables Nomenclature
-    elif re.match("^[a-zA-Z][a-zA-Z0-9]|_*$", sub):
+    elif re.match("^[a-zA-Z]([a-zA-Z0-9]|_)*$", sub):
         TOKENS.append(token(sub, Token_type.IDENTIFIER))
 
     else:
@@ -323,7 +323,7 @@ def find_token(text):
             isSym = True
             sub = i
 
-        elif i.isalnum() or i == '.':
+        elif i.isalnum() or i == '.' or i == '_':
             sub += i
 
 
@@ -340,6 +340,7 @@ def find_token(text):
 # Parsing
 # Match Function
 def Match(a, j):
+    global current_SemiColon
     output = dict()
     if (j < len(TOKENS)):
         Temp = TOKENS[j].to_dict()
@@ -953,6 +954,7 @@ def Statement(j):
 
 
     elif temp["token_type"] == Token_type.REPEAT:
+        print(temp["token_type"])
         out_repeat = RepeatStatement(j)
         Children.append(out_repeat['node'])
         # Create a tree node
@@ -1119,11 +1121,19 @@ def Assign(j):
         out = {'node': '', 'index': j - 1}
         return out
     temp = SemiColonsErrorsFollow[current_SemiColon]
-    current_SemiColon += 1
+    temp1 = TOKENS[out_value['index']].to_dict()
+
     #print("CurrentSemiColon: ")
     #print(temp)
-    out_semi = Match(Token_type.Semicolon, temp-1)
-    Children.append(out_semi['node'])
+    if(temp1['token_type']==Token_type.UNTIL):
+        node = Tree('Assign', Children)
+        out['node'] = node
+        out['index'] = out_value['index']
+        return out
+    else:
+        current_SemiColon += 1
+        out_semi = Match(Token_type.Semicolon, temp-1)
+        Children.append(out_semi['node'])
 
     node = Tree('Assign', Children)
     out['node'] = node
@@ -1512,6 +1522,7 @@ def Constvalue(j):
 
 
 def ifStatement(j):
+    global current_SemiColon
     Children = []
     out = dict()
     out_if = Match(Token_type.If, j)
@@ -1531,9 +1542,17 @@ def ifStatement(j):
     out['index'] = out_ifstatement_d['index']
     return out
 def ifStatement_d(j):
+    global current_SemiColon
     Children = []
     out = dict()
+    if (TOKENS[j -1] == TOKENS[-1]):  ##########for not accessing out of index
+        out = {'node': '', 'index': j-1}
+        return out
     temp = TOKENS[j].to_dict()
+    if(temp['token_type']==Token_type.ENDDOT):
+        out = {'node': '', 'index': j}
+        return out
+    # print(temp)
     temp2 = TOKENS[j+1].to_dict()
     if temp["token_type"]==Token_type.Else:
         if temp2["token_type"]==Token_type.If:
@@ -1573,8 +1592,14 @@ def RepeatStatement(j):
     out = dict()
     out_repeat = Match(Token_type.REPEAT,j)
     Children.append(out_repeat['node'])
-    out_Statement = Statements(out_repeat['index'])
+    out_Statement = Statement(out_repeat['index'])
     Children.append(out_Statement['node'])
+    while(True):
+        out_Statement = Statement(out_Statement['index'])
+        Children.append(out_Statement['node'])
+        temp=TOKENS[out_Statement['index']].to_dict()
+        if(temp['token_type']==Token_type.UNTIL):
+            break
     out_until = Match(Token_type.UNTIL, out_Statement['index'])
     Children.append(out_until['node'])
     out_Cond = Cond(out_until['index'])
@@ -1600,6 +1625,7 @@ def RepeatStatement(j):
 # eq -> <> | =
 
 def Cond(j):
+    global current_SemiColon
     Children = []
     out = dict()
     if (TOKENS[j - 1] == TOKENS[-1]):  ##########for not accessing out of index
@@ -1657,6 +1683,7 @@ def Cond(j):
 
 
 def boolex(j):
+    global current_SemiColon
     Children = []
     out = dict()
     temp = TOKENS[j].to_dict()
