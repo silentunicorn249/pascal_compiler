@@ -5,6 +5,9 @@ import re
 import pandas
 import pandastable as pt
 from nltk.tree import *
+from PIL import ImageTk, Image
+from visual_automata.fa.dfa import VisualDFA
+
 
 
 # Defining token types
@@ -1937,6 +1940,8 @@ def Parse():
 # Presentation
 ##### GUI
 root = tk.Tk()
+root.title('Pascal compiler')
+root.resizable(False, False)
 
 canvas1 = tk.Canvas(root, width=400, height=300, relief='raised')
 canvas1.pack()
@@ -1952,6 +1957,117 @@ canvas1.create_window(200, 100, window=label2)
 entry1 = tk.Entry(root)
 canvas1.create_window(200, 140, window=entry1)
 
+# n stands for a number
+# l stands for a letter
+# . stands for a .
+# ' stands for a '
+# o stands for other symbols
+constants_graph = VisualDFA(
+    states={'A', 'B', 'C'},
+    input_symbols={'n', '.', 'o', 'l', '\''},
+    transitions={
+        'A': {'n':'B', 'o':'C', 'l':'C', '.':'C', '\'':'C'},
+        'B': {'n':'B', 'o':'C', 'l':'C', '.':'B', '\'':'C'},
+        'C': {'n':'C', 'o':'C', 'l':'C', '.':'C', '\'':'C'}
+    },
+    initial_state='A',
+    final_states={'B'}
+)
+
+
+strings_graph = VisualDFA(
+    states={'A', 'B', 'C', 'D'},
+    input_symbols={'n', '.', 'o', 'l', '\''},
+    transitions={
+        'A': {'n':'D', 'o':'D', 'l':'D', '.':'D', '\'':'B'},
+        'B': {'n':'B', 'o':'B', 'l':'B', '.':'B', '\'':'C'},
+        'C': {'n':'D', 'o':'D', 'l':'D', '.':'D', '\'':'D'},
+        'D': {'n':'D', 'o':'D', 'l':'D', '.':'D', '\'':'D'}
+    },
+    initial_state='A',
+    final_states={'C'}
+)
+
+identifiers_graph = VisualDFA(
+    states={'A', 'B', 'C'},
+    input_symbols={'n', '.', 'o', 'l', '\''},
+    transitions={
+        'A': {'n':'C', 'o':'C', 'l':'B', '.':'C', '\'':'C'},
+        'B': {'n':'B', 'o':'C', 'l':'B', '.':'C', '\'':'C'},
+        'C': {'n':'C', 'o':'C', 'l':'C', '.':'C', '\'':'C'}
+    },
+    initial_state='A',
+    final_states={'B'}
+)
+
+def get_in(sub):
+    out = ''
+    for i in sub:
+        if i.isnumeric():
+            out+='n'
+        elif i=='.' or i=='\'':
+            out+=i
+        elif i.isalpha() or i=='_':
+            out+='l'
+        else:
+            out+='o'
+    return out
+
+
+def open_dfa():
+    new_window = tk.Toplevel(root)
+    new_window.resizable(False, False)
+    token_label = tk.Label(new_window, text=result_val, fg='black', font=('helvetica', 16, 'bold'))
+    constant_text = tk.Label(new_window, text='constants', fg='black', font=('helvetica', 16, 'bold'))
+    constant_image = tk.Label(new_window)
+    const_img = Image.open('Constants.png')
+    width, height = const_img.size
+    const_img = const_img.resize((int(width/2), int(height/2)), Image.LANCZOS)
+    const_photo = ImageTk.PhotoImage(const_img)
+    constant_image.image = const_photo
+    constant_image['image'] = const_photo
+
+    identifier_text = tk.Label(new_window, text='identifiers', fg='black', font=('helvetica', 16, 'bold'))
+    identifier_image = tk.Label(new_window)
+    id_img = Image.open('Identifiers.png')
+    width, height = id_img.size
+    id_img = id_img.resize((int(width/2), int(height/2)), Image.LANCZOS)
+    id_photo = ImageTk.PhotoImage(id_img)
+    identifier_image.image = id_photo
+    identifier_image['image'] = id_photo
+
+    strings_text = tk.Label(new_window, text='strings', fg='black', font=('helvetica', 16, 'bold'))
+    strings_image = tk.Label(new_window)
+    st_img = Image.open('Strings.png')
+    width, height = st_img.size
+    st_img = st_img.resize((int(width/2), int(height/2)), Image.LANCZOS)
+    st_photo = ImageTk.PhotoImage(st_img)
+    strings_image.image = st_photo
+    strings_image['image'] = st_photo
+
+    token_label.grid(row=0, column=0)
+    constant_text.grid(row=1, column=0)
+    constant_image.grid(row=2, column=0)
+    identifier_text.grid(row=1, column=1)
+    identifier_image.grid(row=2, column=1)
+    strings_text.grid(row=1, column=2)
+    strings_image.grid(row=2, column=2)
+
+def on_cell_clicked(event, dTDaPT: pt.Table):
+    global result_val
+    row = dTDaPT.get_row_clicked(event)
+    col = dTDaPT.get_col_clicked(event)
+    if row is not None and col is not None:
+        cell_value = dTDaPT.model.getValueAt(row, col)
+        print("Cell clicked: row={}, col={}, value={}".format(row, col, cell_value))
+        result_val = cell_value
+        graph_input = get_in(cell_value)
+        print(graph_input)
+        constants_graph.show_diagram(graph_input, filename='Constants', format_type='png')
+        strings_graph.show_diagram(graph_input, filename='Strings', format_type='png')
+        identifiers_graph.show_diagram(graph_input, filename='Identifiers', format_type='png')
+        open_dfa()
+
 
 def Scan():
     x1 = entry1.get()
@@ -1964,7 +2080,7 @@ def Scan():
     dTDa1.title('Token Stream')
     dTDaPT = pt.Table(dTDa1, dataframe=df, showtoolbar=True, showstatusbar=True)
     dTDaPT.show()
-    # start Parsing
+    dTDaPT.bind("<ButtonRelease-1>", lambda event: on_cell_clicked(event,dTDaPT))    # start Parsing
     Node = Parse()
 
     # to display errorlist
@@ -1978,6 +2094,13 @@ def Scan():
 
 button1 = tk.Button(text='Scan', command=Scan, bg='brown',
                     fg='white', font=('helvetica', 9, 'bold'))
-
 canvas1.create_window(200, 180, window=button1)
+
+
+
+#
+# button2 = tk.Button(text='DFA', command=open_dfa, bg='brown',
+#                     fg='white', font=('helvetica', 9, 'bold'))
+# canvas1.create_window(200, 220, window=button2)
+
 root.mainloop()
