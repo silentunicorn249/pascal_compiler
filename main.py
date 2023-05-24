@@ -190,6 +190,7 @@ Data_Types = {
 TOKENS = []
 errors = []
 newDataTypes = []
+functionnames = []
 SemiColonsErrorsFollow = []
 current_SemiColon = 0
 # TODO write in the first 2 if conditions sub.lowercase()
@@ -1274,7 +1275,22 @@ def Value(j):
     out = dict()
     temp1 = TOKENS[j].to_dict()
     temp2 = TOKENS[j+1].to_dict()
-    if temp1['token_type'] == Token_type.IDENTIFIER:
+    if temp1['Lex'] in functionnames:
+        out_value = Match(Token_type.IDENTIFIER, j)
+        Children.append(out_value['node'])
+        out_leftpar = Match(Token_type.LEFT_PAR, out_value['index'])
+        Children.append(out_leftpar['node'])
+        out_vfnames = vfnames(out_leftpar['index'])
+        Children.append(out_vfnames['node'])
+        out_rightpar = Match(Token_type.RIGHT_PAR, out_vfnames['index'])
+        Children.append(out_rightpar['node'])
+
+        node = Tree('FunctionParameters', Children)
+        out['node'] = node
+        out['index'] = out_rightpar['index']
+        return out
+
+    elif temp1['token_type'] == Token_type.IDENTIFIER:
         if temp2['token_type'] == Token_type.PlusOp or temp2['token_type'] == Token_type.MinusOp or temp2[
             'token_type'] == Token_type.MultiplyOp or temp2['token_type'] == Token_type.DivideOp:
             out_value = Experssion(j, "id")
@@ -1738,6 +1754,11 @@ def FuncBlock(j):
     Children.append(out_function['node'])
     print(out_function)
     out_id = Match(Token_type.IDENTIFIER, out_function['index'])
+    if not (out_id['node'] == ["error"]):
+        temp4 = out_id['node']
+        functionnames.append(temp4[0])
+    # print(temp4)
+    # print(functionnames)
     Children.append(out_id['node'])
     out_leftpar = Match(Token_type.LEFT_PAR, out_id['index'])
     Children.append(out_leftpar['node'])
@@ -1892,6 +1913,55 @@ def fBlock(j):
         out['node'] = node
         out['index'] = out_stats['index']
         return out
+def vfnames(j):
+    global current_SemiColon
+    Children = []
+    out = dict()
+    temp = TOKENS[j].to_dict()
+    if temp['token_type'] == Token_type.IDENTIFIER:
+        out_id = Match(Token_type.IDENTIFIER, j)
+    elif temp['token_type'] == Token_type.CONSTANT:
+        out_id = Match(Token_type.IDENTIFIER, j)
+    Children.append(out_id['node'])
+    out_evn = extravfnames(out_id['index'])
+    if (not (out_evn['node'] == '')):
+        Children.append(out_evn['node'])
+
+    # Create a tree node
+    node = Tree('Variable Names', Children)
+    out['node'] = node
+    out['index'] = out_evn['index']
+    return out
+
+
+def extravfnames(j):
+    global current_SemiColon
+    temp = TOKENS[j].to_dict()
+    if temp['token_type'] == Token_type.Comma:
+        Children = []
+        out = dict()
+        out_comma = Match(Token_type.Comma, j)
+        Children.append(out_comma['node'])
+        temp3 = out_comma['index']
+        temp2 = TOKENS[temp3].to_dict()
+        if temp2['token_type'] == Token_type.IDENTIFIER:
+            out_id = Match(Token_type.IDENTIFIER, temp3)
+        elif temp2['token_type'] == Token_type.CONSTANT:
+            out_id = Match(Token_type.IDENTIFIER, temp3)
+        Children.append(out_id['node'])
+        out_ex = extravfnames(out_id['index'])
+        if (not (out_ex['node'] == '')):
+            Children.append(out_ex['node'])
+        # Create a tree node
+        node = Tree('Function Variables', Children)
+        out['node'] = node
+        out['index'] = out_ex['index']
+        return out
+    else:
+        out = {'node': '', 'index': j}
+        return out
+
+
 def Parse():
     global current_SemiColon
     count = 0
@@ -2076,6 +2146,14 @@ def on_cell_clicked(event, dTDaPT: pt.Table):
 
 
 def Scan():
+    global current_SemiColon, TOKENS, errors, newDataTypes, SemiColonsErrorsFollow, functionnames
+    TOKENS = []
+    errors = []
+    newDataTypes = []
+    SemiColonsErrorsFollow = []
+    functionnames = []
+    current_SemiColon = 0
+
     x1 = entry1.get()
     find_token(x1)
     df = pandas.DataFrame.from_records([t.to_dict() for t in TOKENS])
