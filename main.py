@@ -1537,7 +1537,8 @@ def ifStatement(j):
     out_statement = Statements(out_then['index'])
     Children.append(out_statement['node'])
     out_ifstatement_d = ifStatement_d(out_statement['index'])
-    Children.append(out_ifstatement_d['node'])
+    if (not (out_ifstatement_d['node'] == '')):
+        Children.append(out_ifstatement_d['node'])
 
     #Tree
     node = Tree('IfStatement', Children)
@@ -1889,7 +1890,12 @@ def fBlock(j):
         out['index'] = out_stats['index']
         return out
 def Parse():
-    global current_SemiColon
+    global current_SemiColon, TOKENS, errors, newDataTypes, SemiColonsErrorsFollow
+    TOKENS = []
+    errors = []
+    newDataTypes = []
+    SemiColonsErrorsFollow = []
+    current_SemiColon = 0
     count = 0
     for i in TOKENS:
         count += 1
