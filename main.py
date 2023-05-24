@@ -1891,7 +1891,6 @@ def fBlock(j):
         return out
 def Parse():
     global current_SemiColon
-    current_SemiColon = 0
     count = 0
     for i in TOKENS:
         count += 1
